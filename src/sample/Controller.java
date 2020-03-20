@@ -9,7 +9,14 @@ public class Controller {
 
     public void initialize() {
         labelka.setText("asadada");
+//        Layout layout = new Layout();
+
+
+
+
     }
+
+
 
 
 }
