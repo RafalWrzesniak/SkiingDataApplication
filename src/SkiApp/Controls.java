@@ -1,5 +1,6 @@
-package sample;
+package SkiApp;
 
+import javafx.scene.layout.HBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
@@ -14,6 +15,7 @@ class Controls {
     }
 
     File chooseFileDialog() {
+
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Open Resource File");
         fileChooser.getExtensionFilters().addAll(

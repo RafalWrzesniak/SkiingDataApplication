@@ -1,8 +1,10 @@
-.label1{
+.labelValue{
     -fx-text-align: center;
-    -fx-border-radius: 2;
+    -fx-font-weight: bold;
 }
 
-    -fx-border-color: black;
--fx-text-fill: #006464;
--fx-background-color: #DFB951;
+.labelDate {
+    -fx-text-align: center;
+    -fx-font-size: 17;
+    -fx-font-weight: bold;
+}

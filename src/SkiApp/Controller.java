@@ -1,4 +1,4 @@
-package sample;
+package SkiApp;
 
 import javafx.scene.control.Label;
 
