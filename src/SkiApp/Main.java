@@ -1,25 +1,25 @@
 package SkiApp;
 
+import de.saring.leafletmap.LatLong;
+import de.saring.leafletmap.MapConfig;
+import de.saring.leafletmap.Marker;
 import javafx.application.Application;
-import javafx.beans.value.ChangeListener;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Group;
-import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.stage.FileChooser;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
 
 import java.io.File;
-import java.io.FileInputStream;
+import java.util.concurrent.CompletableFuture;
 
 
 public class Main extends Application {
@@ -27,12 +27,17 @@ public class Main extends Application {
     @Override
     public void start(Stage primaryStage) {
         Group root = new Group();
-        Scene scene = new Scene(root, 500, 400, Color.WHITE);
+        Scene scene = new Scene(root, 1000, 700, Color.WHITE);
         scene.getStylesheets().add("/styles.css");
         Layout layout = new Layout(primaryStage);
         primaryStage.setScene(scene);
         primaryStage.setTitle("Your ski application");
         root.getChildren().add(layout.mainBorderPane);
+        primaryStage.addEventHandler(WindowEvent.WINDOW_SHOWN, window -> {
+            System.out.println("okienko ziuma");
+            layout.setupAfterWindowShown(primaryStage);
+
+        });
         primaryStage.show();
     }
 
@@ -46,20 +51,35 @@ class Layout {
     BorderPane mainBorderPane = new BorderPane();
     private HBox fileChooserHBox = new HBox();
     private VBox dateColumnVBox = new VBox();
-    private AnchorPane anchorPane = new AnchorPane();
+    private VBox viewDataVBox = new VBox();
     private ScrollPane scrollPane = new ScrollPane();
+    private StackPane spMapView = new StackPane();
+    de.saring.leafletmap.LeafletMapView mapView = new de.saring.leafletmap.LeafletMapView();
+
 
     Layout(Stage primaryStage) {
         fileChooser(primaryStage);
         center();
-        dateColumn(primaryStage);
+        dateColumn();
         borderPane();
     }
+
+    void setupAfterWindowShown(Stage primaryStage){
+        spMapView.setMaxWidth(primaryStage.getScene().getWidth()-224-5);
+        spMapView.setMaxHeight(primaryStage.getScene().getHeight()-200);
+
+        primaryStage.getScene().heightProperty().addListener((obs, oldVal, newVal) -> {
+            scrollPane.setMaxHeight(primaryStage.getScene().getHeight()-fileChooserHBox.getHeight());
+            spMapView.setMaxHeight(primaryStage.getScene().getHeight()-200);
+        });
+        primaryStage.getScene().widthProperty().addListener((obs, oldVal, newVal) -> spMapView.setMaxWidth(primaryStage.getScene().getWidth()-224-5));
+    }
+
 
     private void borderPane(){
         mainBorderPane.setTop(fileChooserHBox);
         mainBorderPane.setLeft(scrollPane);
-        mainBorderPane.setCenter(anchorPane);
+        mainBorderPane.setCenter(viewDataVBox);
     }
 
 
@@ -72,6 +92,7 @@ class Layout {
         fileChooserHBox.setStyle("-fx-background-color: dodgerblue ");
         // label
         Label chosenFileLabel = new Label();
+//        chosenFileLabel.foc
         chosenFileLabel.setMinHeight(25);
         chosenFileLabel.setMinWidth(300);
         chosenFileLabel.setAlignment(Pos.CENTER_LEFT);
@@ -86,17 +107,26 @@ class Layout {
             } catch (NullPointerException npe) {
                 System.out.println(chosenFileLabel.getText());
             }
-
             scrollPane.setContent(dateColumnVBox);
             scrollPane.setMaxHeight(primaryStage.getScene().getHeight()-fileChooserHBox.getHeight());
-            primaryStage.getScene().heightProperty().addListener((obs, oldVal, newVal) -> {
-                scrollPane.setMaxHeight(primaryStage.getScene().getHeight()-fileChooserHBox.getHeight());
-            });
+
+
+            LatLong latLong = new LatLong(50.299849, 21.343366);
+            Marker marker = new Marker() {
+                @Override
+                public String getIconName() {
+                    return "as";
+                }
+            };
+            System.out.println(marker.getIconName());
+            mapView.addMarker(latLong, "Moja_kochana", marker, 1);
+
+//            mapView.setZoom(10);
         });
         fileChooserHBox.getChildren().addAll(chooseFileButton, chosenFileLabel);
     }
 
-    File chooseFileDialog(Stage primaryStage) {
+    private File chooseFileDialog(Stage primaryStage) {
 
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Open Resource File");
@@ -106,7 +136,7 @@ class Layout {
         return fileChooser.showOpenDialog(primaryStage);
     }
 
-    private void dateColumn(Stage primaryStage) {
+    private void dateColumn() {
         GPXdataFrame singleDayFrame = new GPXdataFrame("10.03.2020", "46", "5h 12m",
                 "57", "2596", true);
         GPXdataFrame singleDayFrame2 = new GPXdataFrame("11.03.2020", "62", "6h 32m",
@@ -133,11 +163,27 @@ class Layout {
 
 
     private void center() {
-        anchorPane.setPrefWidth(Screen.getPrimary().getVisualBounds().getWidth());
-        anchorPane.setPrefHeight(Screen.getPrimary().getVisualBounds().getHeight());
-        anchorPane.setStyle("-fx-background-color: white;");
+
+        AnchorPane charts = new AnchorPane();
+        charts.setPrefHeight(150);
+        viewDataVBox.getChildren().addAll(charts, spMapView);
+
+        spMapView.setStyle("-fx-background: white;");
 
 
+        spMapView.getChildren().add(mapView);
+        mapView.displayMap(new MapConfig());
+
+
+//        Marker marker = () -> "Klaudia";
+//        LatLong latLong = new LatLong(50.299849, 21.343366);
+//        mapView.addMarker(latLong, "Moja kochana", marker, 1);
+
+
+    }
+
+    void asd(){
+        System.out.println("xd");
     }
 
 

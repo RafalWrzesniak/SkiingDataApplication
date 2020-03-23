@@ -8,6 +8,7 @@ module SkiingData {
     requires javafx.swing;
     requires slf4j.api;
     requires jaxb.api;
+    requires kotlin.stdlib;
 
 
     opens SkiApp;
