@@ -4,13 +4,14 @@ import de.saring.leafletmap.LatLong;
 import de.saring.leafletmap.MapConfig;
 import de.saring.leafletmap.Marker;
 import javafx.application.Application;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Group;
+import javafx.scene.Node;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.ScrollPane;
+import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.stage.FileChooser;
@@ -19,6 +20,7 @@ import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 
 import java.io.File;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 
@@ -34,9 +36,7 @@ public class Main extends Application {
         primaryStage.setTitle("Your ski application");
         root.getChildren().add(layout.mainBorderPane);
         primaryStage.addEventHandler(WindowEvent.WINDOW_SHOWN, window -> {
-            System.out.println("okienko ziuma");
             layout.setupAfterWindowShown(primaryStage);
-
         });
         primaryStage.show();
     }
@@ -111,17 +111,8 @@ class Layout {
             scrollPane.setMaxHeight(primaryStage.getScene().getHeight()-fileChooserHBox.getHeight());
 
 
-            LatLong latLong = new LatLong(50.299849, 21.343366);
-            Marker marker = new Marker() {
-                @Override
-                public String getIconName() {
-                    return "as";
-                }
-            };
-            System.out.println(marker.getIconName());
-            mapView.addMarker(latLong, "Moja_kochana", marker, 1);
-
-//            mapView.setZoom(10);
+            mapView.addMarker(new LatLong(50.089306, 19.751844), "Zwierzątko", 1);
+            mapView.addMarker(new LatLong(50.299849, 21.343366), "Moja ukochana", 1);
         });
         fileChooserHBox.getChildren().addAll(chooseFileButton, chosenFileLabel);
     }
@@ -147,8 +138,16 @@ class Layout {
                 "63", "3126", false);
         GPXdataFrame singleDayFrame5 = new GPXdataFrame("14.03.2020", "46", "5h 12m",
                 "57", "2596", true);
-        dateColumnVBox = new VBox(3, singleDayFrame.getGPXdataFrame(), singleDayFrame2.getGPXdataFrame(), singleDayFrame3.getGPXdataFrame(), singleDayFrame4.getGPXdataFrame(), singleDayFrame5.getGPXdataFrame());
-        dateColumnVBox.setMinWidth(100);
+
+        singleDayFrame.getGPXdataFrame(), singleDayFrame2.getGPXdataFrame(), singleDayFrame3.getGPXdataFrame(), singleDayFrame4.getGPXdataFrame(), singleDayFrame5.getGPXdataFrame());
+        ObservableList<VBox> frameList =  FXCollections.<VBox>observableArrayList(singleDayFrame.getGPXdataFrame(), singleDayFrame2.getGPXdataFrame(), singleDayFrame3.getGPXdataFrame(), singleDayFrame4.getGPXdataFrame(), singleDayFrame5.getGPXdataFrame()););
+
+//        tbView.setItems(list);
+        ListView frameListPane = new ListView(frameList);
+
+        dateColumnVBox = new VBox(3, (Node) frameList);
+//        dateColumnVBox.setMinWidth(100);
+
         dateColumnVBox.setStyle("-fx-background-color: dodgerblue; -fx-border-style: solid ;-fx-border-color: dodgerblue; -fx-border-width: 3;");
 
 
@@ -175,15 +174,6 @@ class Layout {
         mapView.displayMap(new MapConfig());
 
 
-//        Marker marker = () -> "Klaudia";
-//        LatLong latLong = new LatLong(50.299849, 21.343366);
-//        mapView.addMarker(latLong, "Moja kochana", marker, 1);
-
-
-    }
-
-    void asd(){
-        System.out.println("xd");
     }
 
 

@@ -2,7 +2,6 @@ package SkiApp;
 
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -33,6 +32,7 @@ class GPXdataFrame {
     private Label[] labelsAll = {date, dateValue, distance, time, speed, altitude, distanceValue, timeValue, speedValue, altitudeValue};
 
     private boolean normalColorStyle;
+    private boolean imClicked = false;
 
     GPXdataFrame(String dateValue, String distanceValue, String timeValue, String speedValue, String altitudeValue, boolean normalColorStyle) {
         this.dateValue.setText(dateValue);
@@ -73,6 +73,32 @@ class GPXdataFrame {
         } else {
             wholeFrameStats.setStyle("-fx-border-color: chocolate; -fx-border-width: 3; -fx-background-color: wheat;");
         }
+
+        wholeFrameStats.setOnMouseExited(mouseEvent -> {
+            System.out.println("Mouse exit");
+            System.out.println(imClicked);
+            System.out.println(wholeFrameStats.getStyle().contains("limegreen"));
+
+            if(!wholeFrameStats.getStyle().contains("limegreen")) {
+                if (normalColorStyle) {
+                    wholeFrameStats.setStyle("-fx-border-color: navy; -fx-border-width: 3; -fx-background-color: lightcyan;");
+                } else {
+                    wholeFrameStats.setStyle("-fx-border-color: chocolate; -fx-border-width: 3; -fx-background-color: wheat;");
+                }
+            }
+        });
+
+
+        wholeFrameStats.setOnMouseEntered(mouseEvent -> {
+            if(!wholeFrameStats.getStyle().contains("limegreen")) {
+                wholeFrameStats.setStyle("-fx-border-color: orangered ; -fx-border-width: 4; -fx-background-color: mediumspringgreen ;");
+            }
+        });
+
+        wholeFrameStats.setOnMouseClicked(mouseEvent -> {
+            wholeFrameStats.setStyle("-fx-border-color: red; -fx-border-width: 4; -fx-background-color: limegreen  ;");
+            imClicked = true;
+        });
 
         return wholeFrameStats;
     }
