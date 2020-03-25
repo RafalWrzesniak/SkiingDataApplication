@@ -148,7 +148,6 @@ class Layout {
 
         }
 
-
         dateColumnVBox.setStyle("-fx-background-color: dodgerblue;");
         dateColumnVBox.setSpacing(3);
         dateColumnVBox.setPadding(new Insets(3, 3,3,3));
