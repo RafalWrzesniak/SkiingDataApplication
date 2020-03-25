@@ -1,15 +1,14 @@
 package SkiApp;
 
 import de.saring.leafletmap.LatLong;
+import de.saring.leafletmap.LeafletMapView;
 import de.saring.leafletmap.MapConfig;
-import de.saring.leafletmap.Marker;
 import javafx.application.Application;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Group;
-import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
@@ -20,8 +19,6 @@ import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 
 import java.io.File;
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
 
 
 public class Main extends Application {
@@ -35,9 +32,7 @@ public class Main extends Application {
         primaryStage.setScene(scene);
         primaryStage.setTitle("Your ski application");
         root.getChildren().add(layout.mainBorderPane);
-        primaryStage.addEventHandler(WindowEvent.WINDOW_SHOWN, window -> {
-            layout.setupAfterWindowShown(primaryStage);
-        });
+        primaryStage.addEventHandler(WindowEvent.WINDOW_SHOWN, window -> layout.setupAfterWindowShown(primaryStage));
         primaryStage.show();
     }
 
@@ -53,9 +48,10 @@ class Layout {
     private VBox dateColumnVBox = new VBox();
     private VBox viewDataVBox = new VBox();
     private ScrollPane scrollPane = new ScrollPane();
-    private StackPane spMapView = new StackPane();
-    de.saring.leafletmap.LeafletMapView mapView = new de.saring.leafletmap.LeafletMapView();
-
+    private StackPane mapViewPane = new StackPane();
+    private LeafletMapView mapView = new LeafletMapView();
+    private AnchorPane charts = new AnchorPane();
+    private ObservableList<GPXdataFrame> frameListObs;
 
     Layout(Stage primaryStage) {
         fileChooser(primaryStage);
@@ -64,15 +60,27 @@ class Layout {
         borderPane();
     }
 
-    void setupAfterWindowShown(Stage primaryStage){
-        spMapView.setMaxWidth(primaryStage.getScene().getWidth()-224-5);
-        spMapView.setMaxHeight(primaryStage.getScene().getHeight()-200);
 
-        primaryStage.getScene().heightProperty().addListener((obs, oldVal, newVal) -> {
-            scrollPane.setMaxHeight(primaryStage.getScene().getHeight()-fileChooserHBox.getHeight());
-            spMapView.setMaxHeight(primaryStage.getScene().getHeight()-200);
+    void setupAfterWindowShown(Stage primaryStage){
+        scrollPane.setPrefWidth(217);
+        mapViewPane.setMaxWidth(primaryStage.getScene().getWidth()-scrollPane.getPrefWidth());
+        mapViewPane.setMaxHeight(primaryStage.getScene().getHeight()-charts.getHeight()-fileChooserHBox.getHeight());
+
+        primaryStage.getScene().heightProperty().addListener((obs, sceneHeightObs, newVal) -> {
+            double sceneHeight = sceneHeightObs.doubleValue();
+            scrollPane.setMaxHeight(sceneHeight-fileChooserHBox.getHeight());
+            scrollPane.setPrefHeight(sceneHeight-fileChooserHBox.getHeight());
+            mapViewPane.setMaxHeight(sceneHeight-charts.getHeight()-fileChooserHBox.getHeight());
+            mapViewPane.setPrefHeight(sceneHeight-charts.getHeight()-fileChooserHBox.getHeight());
+            if(dateColumnVBox.getHeight() > sceneHeight-fileChooserHBox.getHeight()){
+                scrollPane.setPrefWidth(dateColumnVBox.getWidth()+15);
+            } else {
+                scrollPane.setPrefWidth(dateColumnVBox.getWidth()+5);
+            }
         });
-        primaryStage.getScene().widthProperty().addListener((obs, oldVal, newVal) -> spMapView.setMaxWidth(primaryStage.getScene().getWidth()-224-5));
+        primaryStage.getScene().widthProperty().addListener((obs, oldVal, newVal) -> mapViewPane.setMaxWidth(primaryStage.getScene().getWidth()-scrollPane.getWidth()));
+
+        scrollPane.setContent(dateColumnVBox);
     }
 
 
@@ -84,7 +92,6 @@ class Layout {
 
 
     private void fileChooser(Stage primaryStage) {
-//        Controls controls = new Controls(primaryStage);
         fileChooserHBox.setPrefHeight(20);
         fileChooserHBox.setPrefWidth(Screen.getPrimary().getVisualBounds().getWidth());
         fileChooserHBox.setSpacing(20);
@@ -92,7 +99,6 @@ class Layout {
         fileChooserHBox.setStyle("-fx-background-color: dodgerblue ");
         // label
         Label chosenFileLabel = new Label();
-//        chosenFileLabel.foc
         chosenFileLabel.setMinHeight(25);
         chosenFileLabel.setMinWidth(300);
         chosenFileLabel.setAlignment(Pos.CENTER_LEFT);
@@ -105,14 +111,11 @@ class Layout {
                 chosenFileLabel.setText(chooseFileDialog(primaryStage).toString());
                 chosenFileLabel.setStyle("-fx-border-color: limegreen; -fx-background-color: white; -fx-border-width: 3");
             } catch (NullPointerException npe) {
-                System.out.println(chosenFileLabel.getText());
+                System.out.println("error while loading file");
             }
-            scrollPane.setContent(dateColumnVBox);
-            scrollPane.setMaxHeight(primaryStage.getScene().getHeight()-fileChooserHBox.getHeight());
-
-
             mapView.addMarker(new LatLong(50.089306, 19.751844), "Zwierzątko", 1);
             mapView.addMarker(new LatLong(50.299849, 21.343366), "Moja ukochana", 1);
+//            scrollPane.setContent(dateColumnVBox); // 83
         });
         fileChooserHBox.getChildren().addAll(chooseFileButton, chosenFileLabel);
     }
@@ -120,10 +123,9 @@ class Layout {
     private File chooseFileDialog(Stage primaryStage) {
 
         FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Open Resource File");
+        fileChooser.setTitle("Open your GPX file");
         fileChooser.getExtensionFilters().addAll(
                 new FileChooser.ExtensionFilter("GPX Files", "*.gpx"));
-//                new FileChooser.ExtensionFilter("All Files", "*.*"))
         return fileChooser.showOpenDialog(primaryStage);
     }
 
@@ -139,38 +141,50 @@ class Layout {
         GPXdataFrame singleDayFrame5 = new GPXdataFrame("14.03.2020", "46", "5h 12m",
                 "57", "2596", true);
 
-        singleDayFrame.getGPXdataFrame(), singleDayFrame2.getGPXdataFrame(), singleDayFrame3.getGPXdataFrame(), singleDayFrame4.getGPXdataFrame(), singleDayFrame5.getGPXdataFrame());
-        ObservableList<VBox> frameList =  FXCollections.<VBox>observableArrayList(singleDayFrame.getGPXdataFrame(), singleDayFrame2.getGPXdataFrame(), singleDayFrame3.getGPXdataFrame(), singleDayFrame4.getGPXdataFrame(), singleDayFrame5.getGPXdataFrame()););
+        frameListObs = FXCollections.observableArrayList(singleDayFrame, singleDayFrame2,
+                                                                    singleDayFrame3, singleDayFrame4, singleDayFrame5);
+        for (GPXdataFrame frame : frameListObs) {
+            dateColumnVBox.getChildren().add(frame.getFrameStats());
 
-//        tbView.setItems(list);
-        ListView frameListPane = new ListView(frameList);
-
-        dateColumnVBox = new VBox(3, (Node) frameList);
-//        dateColumnVBox.setMinWidth(100);
-
-        dateColumnVBox.setStyle("-fx-background-color: dodgerblue; -fx-border-style: solid ;-fx-border-color: dodgerblue; -fx-border-width: 3;");
+        }
 
 
-        scrollPane.setPrefSize(224, 300);
+        dateColumnVBox.setStyle("-fx-background-color: dodgerblue;");
+        dateColumnVBox.setSpacing(3);
+        dateColumnVBox.setPadding(new Insets(3, 3,3,3));
+        dateColumnVBox.setOnMouseClicked(mouseEvent -> colorFrames(frameListObs));
+
+
         scrollPane.hbarPolicyProperty().setValue(ScrollPane.ScrollBarPolicy.NEVER);
         scrollPane.vbarPolicyProperty().setValue(ScrollPane.ScrollBarPolicy.AS_NEEDED);
         scrollPane.setMaxHeight(Screen.getPrimary().getVisualBounds().getHeight());
         scrollPane.setStyle("-fx-background: dodgerblue;");
+    }
 
+    private void colorFrames(ObservableList<GPXdataFrame> frameListObs) {
+        for (GPXdataFrame frame : frameListObs) {
+            if(frame.getNormalColorStyle()){
+                frame.getFrameStats().getStyleClass().set(0, "frameBlue");
+            } else {
+                frame.getFrameStats().getStyleClass().set(0, "frameYellow");
+            }
+
+            if(frame.getImClicked()) {
+                frame.getFrameStats().getStyleClass().set(0, "frameClicked");
+                frame.setImClicked(false);
+            }
+        }
 
     }
 
-
     private void center() {
 
-        AnchorPane charts = new AnchorPane();
         charts.setPrefHeight(150);
-        viewDataVBox.getChildren().addAll(charts, spMapView);
+        viewDataVBox.getChildren().addAll(charts, mapViewPane);
+        viewDataVBox.setPadding(new Insets(0,5,5,0));
 
-        spMapView.setStyle("-fx-background: white;");
 
-
-        spMapView.getChildren().add(mapView);
+        mapViewPane.getChildren().add(mapView);
         mapView.displayMap(new MapConfig());
 
 

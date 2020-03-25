@@ -7,9 +7,6 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
-public class GPXdata {
-}
-
 
 class GPXdataFrame {
     private GridPane singleDayStats = new GridPane();
@@ -27,12 +24,13 @@ class GPXdataFrame {
     private Label altitudeValue = new Label();
 
     private Label[] labelDate = {date, dateValue};
-    private Label[] labels = {distance, time, speed, altitude};
+//    private Label[] labels = {distance, time, speed, altitude};
     private Label[] labelValues = {distanceValue, timeValue, speedValue, altitudeValue};
     private Label[] labelsAll = {date, dateValue, distance, time, speed, altitude, distanceValue, timeValue, speedValue, altitudeValue};
 
-    private boolean normalColorStyle;
     private boolean imClicked = false;
+    private boolean normalColorStyle;
+    private VBox wholeFrameStats;
 
     GPXdataFrame(String dateValue, String distanceValue, String timeValue, String speedValue, String altitudeValue, boolean normalColorStyle) {
         this.dateValue.setText(dateValue);
@@ -41,11 +39,11 @@ class GPXdataFrame {
         this.speedValue.setText(String.join(" ", speedValue, "km/h"));
         this.altitudeValue.setText(String.join(" ", altitudeValue, "m"));
         this.normalColorStyle = normalColorStyle;
+        this.wholeFrameStats = createGPXdataFrame();
     }
 
 
-
-    VBox getGPXdataFrame() {
+    private VBox createGPXdataFrame() {
 
         for (Label label : labelsAll) {
             label.setPrefWidth(50);
@@ -69,37 +67,48 @@ class GPXdataFrame {
 
         VBox wholeFrameStats = new VBox(dateOnly, singleDayStats);
         if(normalColorStyle) {
-            wholeFrameStats.setStyle("-fx-border-color: navy; -fx-border-width: 3; -fx-background-color: lightcyan;");
+            wholeFrameStats.getStyleClass().add("frameBlue");
         } else {
-            wholeFrameStats.setStyle("-fx-border-color: chocolate; -fx-border-width: 3; -fx-background-color: wheat;");
+            wholeFrameStats.getStyleClass().add("frameYellow");
         }
 
         wholeFrameStats.setOnMouseExited(mouseEvent -> {
-            System.out.println("Mouse exit");
-            System.out.println(imClicked);
-            System.out.println(wholeFrameStats.getStyle().contains("limegreen"));
-
-            if(!wholeFrameStats.getStyle().contains("limegreen")) {
+            if(!wholeFrameStats.getStyleClass().get(0).equals("frameClicked")) {
                 if (normalColorStyle) {
-                    wholeFrameStats.setStyle("-fx-border-color: navy; -fx-border-width: 3; -fx-background-color: lightcyan;");
+                    wholeFrameStats.getStyleClass().set(0, "frameBlue");
                 } else {
-                    wholeFrameStats.setStyle("-fx-border-color: chocolate; -fx-border-width: 3; -fx-background-color: wheat;");
+                    wholeFrameStats.getStyleClass().set(0, "frameYellow");
                 }
             }
         });
 
 
         wholeFrameStats.setOnMouseEntered(mouseEvent -> {
-            if(!wholeFrameStats.getStyle().contains("limegreen")) {
-                wholeFrameStats.setStyle("-fx-border-color: orangered ; -fx-border-width: 4; -fx-background-color: mediumspringgreen ;");
+            if(!wholeFrameStats.getStyleClass().get(0).equals("frameClicked")) {
+                wholeFrameStats.getStyleClass().set(0, "frameEntered");
             }
         });
 
-        wholeFrameStats.setOnMouseClicked(mouseEvent -> {
-            wholeFrameStats.setStyle("-fx-border-color: red; -fx-border-width: 4; -fx-background-color: limegreen  ;");
-            imClicked = true;
-        });
+        wholeFrameStats.setOnMouseClicked(mouseEvent -> setImClicked(true));
 
+        wholeFrameStats.setMaxWidth(206);
+        return wholeFrameStats;
+    }
+
+
+    boolean getImClicked() {
+        return imClicked;
+    }
+
+    void setImClicked(boolean imClicked) {
+        this.imClicked = imClicked;
+    }
+
+    boolean getNormalColorStyle() {
+        return normalColorStyle;
+    }
+
+    VBox getFrameStats() {
         return wholeFrameStats;
     }
 }

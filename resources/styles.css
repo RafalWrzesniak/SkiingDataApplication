@@ -1,10 +1,34 @@
-.labelValue{
-    -fx-text-align: center;
+.labelValue {
     -fx-font-weight: bold;
+    -fx-text-align: center;
 }
 
 .labelDate {
-    -fx-text-align: center;
     -fx-font-size: 17;
     -fx-font-weight: bold;
+    -fx-text-align: center;
+}
+
+.frameBlue {
+    -fx-border-width: 3;
+    -fx-border-color: navy;
+    -fx-background-color: lightcyan;
+}
+
+.frameYellow {
+    -fx-border-width: 3;
+    -fx-border-color: chocolate;
+    -fx-background-color: wheat;
+}
+
+.frameEntered {
+    -fx-border-width: 4;
+    -fx-border-color: orangered ;
+    -fx-background-color: mediumspringgreen ;
+}
+
+.frameClicked {
+    -fx-border-width: 4;
+    -fx-border-color: red;
+    -fx-background-color: limegreen;
 }
