@@ -1,70 +1,64 @@
 package SkiApp;
 
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
+
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
+import java.io.IOException;
 
-public class GPXparser {
+class GPXparser {
 
     private File inputFile;
     private Document doc;
+    private NodeList trkptList;
+    private NodeList altList;
+    private NodeList timeList;
 
-    GPXparser(File filePath) {
-        this.inputFile = filePath;
+    GPXparser(File inputFile) throws IOException, SAXException, ParserConfigurationException {
+        this.inputFile = inputFile;
         this.doc = createDocUsingDOMparser();
     }
 
 
-    private Document createDocUsingDOMparser() {
-        try {
-            DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-            DocumentBuilder db = dbf.newDocumentBuilder();
-            Document doc = db.parse(inputFile);
-            doc.getDocumentElement().normalize();
-            return doc;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
+    private Document createDocUsingDOMparser() throws ParserConfigurationException, IOException, SAXException {
+        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+        DocumentBuilder db = dbf.newDocumentBuilder();
+        Document doc = db.parse(inputFile);
+        doc.getDocumentElement().normalize();
+        return doc;
+
     }
 
 
     private TrackPoint createTrackPoint(int idXML) {
-        String lat = getAllTrkpt().item(idXML).getAttributes().getNamedItem("lat").getTextContent();
-        String lon = getAllTrkpt().item(idXML).getAttributes().getNamedItem("lon").getTextContent();
-        String alt = getAllEle().item(idXML).getTextContent();
-        String time = getAllTime().item(idXML).getTextContent();
+        String lat = this.trkptList.item(idXML).getAttributes().getNamedItem("lat").getTextContent();
+        String lon = this.trkptList.item(idXML).getAttributes().getNamedItem("lon").getTextContent();
+        String alt = this.altList.item(idXML).getTextContent();
+        String time = this.timeList.item(idXML).getTextContent();
 
         return new TrackPoint(lat, lon, alt, time);
     }
 
-    public TrackPoint[] parseXMLtoTrackPointList() throws Exception {
+    ObservableList<TrackPoint> parseXMLtoTrackPointList() throws Exception {
+        this.trkptList = doc.getElementsByTagName("trkpt");;
+        this.altList = doc.getElementsByTagName("ele");
+        this.timeList = doc.getElementsByTagName("time");
 
-        if(getAllTrkpt().getLength() == getAllEle().getLength() && getAllTrkpt().getLength() == getAllTime().getLength()) {
-            TrackPoint[] trackPointList = new TrackPoint[getAllTrkpt().getLength()];
-            for (int idXML = 0; idXML < getAllTrkpt().getLength(); idXML++) {
-                trackPointList[idXML] = createTrackPoint(idXML);
+        if(trkptList.getLength() == altList.getLength() && trkptList.getLength() == timeList.getLength()) {
+            ObservableList<TrackPoint> trackPointList = FXCollections.observableArrayList();
+            for (int idXML = 0; idXML < trkptList.getLength(); idXML++) {
+                trackPointList.add(createTrackPoint(idXML));
             }
             return trackPointList;
         } else {
             throw new Exception("GPX file is incorrect");
         }
-    }
-
-
-
-    private NodeList getAllTrkpt() {
-        return doc.getElementsByTagName("trkpt");
-    }
-
-    private NodeList getAllEle() {
-        return doc.getElementsByTagName("ele");
-    }
-
-    private NodeList getAllTime() {
-        return doc.getElementsByTagName("time");
     }
 
 }

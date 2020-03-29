@@ -6,16 +6,16 @@ import java.time.LocalDateTime;
 
 public class TrackPoint {
 
-   private double lat;
+    private double lat;
     private double lon;
-    private int alt;
+    private double alt;
     private LocalDate date;
     private LocalTime time;
 
-    public TrackPoint(String lat, String lon, String alt, String dateTime) {
+    TrackPoint(String lat, String lon, String alt, String dateTime) {
         this.lat = Double.parseDouble(lat);
         this.lon = Double.parseDouble(lon);
-        this.alt = (int) Math.round(Double.parseDouble(alt));
+        this.alt = Double.parseDouble(alt);
         setDate(trimInputZ(dateTime));
         setTime(trimInputZ(dateTime));
     }
@@ -50,7 +50,7 @@ public class TrackPoint {
         return lon;
     }
 
-    public int getAlt() {
+    public double getAlt() {
         return alt;
     }
 

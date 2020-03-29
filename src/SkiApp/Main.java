@@ -17,8 +17,11 @@ import javafx.stage.FileChooser;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
+import org.xml.sax.SAXException;
 
+import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
+import java.io.IOException;
 
 
 public class Main extends Application {
@@ -86,9 +89,6 @@ class Layout {
         });
         primaryStage.getScene().widthProperty().addListener((obs, oldVal, newVal) -> {
             mapViewPane.setMaxWidth(primaryStage.getScene().getWidth()-scrollPane.getWidth());
-//            if(newVal.doubleValue() > chosenFileLabel.getWidth()+chooseFileButton.getWidth()+asd.getWidth()+70) {
-//                asd.setTranslateX(primaryStage.getScene().getWidth() - chosenFileLabel.getWidth() - chooseFileButton.getWidth() - asd.getWidth() - 70);
-//            }
         });
 
 
@@ -118,19 +118,40 @@ class Layout {
         chosenFileLabel.setStyle("-fx-border-color: crimson; -fx-background-color: white; -fx-border-width: 3");
 //        //button
 //        Button chooseFileButton = new Button("Select file...");
-        chooseFileButton.setOnAction(e -> {
-            try {
-                chosenFileLabel.setText(chooseFileDialog(primaryStage).toString());
-                chosenFileLabel.setStyle("-fx-border-color: limegreen; -fx-background-color: white; -fx-border-width: 3");
-            } catch (NullPointerException npe) {
-                System.out.println("error while loading file");
-            }
-            mapView.addMarker(new LatLong(50.089306, 19.751844), "Zwierzątko", 1);
-            mapView.addMarker(new LatLong(50.299849, 21.343366), "Moja ukochana", 1);
-//            scrollPane.setContent(dateColumnVBox); // 83
-        });
+        chooseFileButton.setOnAction(e -> fileWasChosen(primaryStage));
 
         fileChooserHBox.getChildren().addAll(chooseFileButton, chosenFileLabel);
+    }
+
+    private void fileWasChosen(Stage primaryStage) {
+        File chosenFile = chooseFileDialog(primaryStage);
+        GPXparser gpXparser;
+        try {
+            gpXparser = new GPXparser(chosenFile);
+        } catch (IllegalArgumentException | IOException | ParserConfigurationException | SAXException e) {
+//            e.printStackTrace();
+            return;
+        }
+
+        try {
+            ObservableList<TrackPoint> allTrackedPoints = gpXparser.parseXMLtoTrackPointList();
+            ObservableList<ObservableList<TrackPoint>> singleDayList = SingleDayStats.divideAllPointsToDays(allTrackedPoints);
+            for (TrackPoint trkpt: allTrackedPoints) {
+                trkpt.printTrackPoint();
+                System.out.println();
+            }
+        } catch (Exception e) {
+//            e.printStackTrace();
+            System.out.println("Errors in GPX file");
+            return;
+        }
+
+        chosenFileLabel.setText(chosenFile.toString());
+        chosenFileLabel.setStyle("-fx-border-color: limegreen; -fx-background-color: white; -fx-border-width: 3");
+
+        mapView.addMarker(new LatLong(50.089306, 19.751844), "Zwierzątko", 1);
+        mapView.addMarker(new LatLong(50.299849, 21.343366), "Moja ukochana", 1);
+//            scrollPane.setContent(dateColumnVBox); // 83
     }
 
     private File chooseFileDialog(Stage primaryStage) {
@@ -155,9 +176,6 @@ class Layout {
                 "57", "2596", true);
         frameListObs = FXCollections.observableArrayList(singleDayFrame, singleDayFrame2,
                                                                     singleDayFrame3, singleDayFrame4, singleDayFrame5);
-//        for (GPXdataFrame frame : frameListObs) {
-//            dateColumnVBox.getChildren().add(frame.getFrameStats());
-//        }
 
 
         dateColumnVBox.setStyle("-fx-background-color: dodgerblue;");
