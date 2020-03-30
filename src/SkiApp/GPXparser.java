@@ -46,7 +46,7 @@ class GPXparser {
     }
 
     ObservableList<TrackPoint> parseXMLtoTrackPointList() throws Exception {
-        this.trkptList = doc.getElementsByTagName("trkpt");;
+        this.trkptList = doc.getElementsByTagName("trkpt");
         this.altList = doc.getElementsByTagName("ele");
         this.timeList = doc.getElementsByTagName("time");
 
