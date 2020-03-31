@@ -28,14 +28,9 @@ class OneDayDataWithFrame extends SingleDayStats{
 
         Label dateValue = new Label(super.getDate().toString());
         Label distanceValue = new Label(Math.round(super.getTotalDistance()) + " km");
-        Label timeValue = new Label(super.getTotalTime().getHour() + "h " + super.getTotalTime().getMinute() + "s");
+        Label timeValue = new Label(super.getTotalTime().getHour() + "h " + super.getTotalTime().getMinute() + "m");
         Label altitudeValue = new Label(Math.round(super.getMaxAlt()) + " m");
-        Label speedValue;
-        if(super.getMaxSpeed() < 100) {
-            speedValue = new Label(Math.round(super.getMaxSpeed()) + " km/h");
-        } else {
-            speedValue = new Label("99 km/h");
-        }
+        Label speedValue = new Label(Math.round(super.getMaxSpeed()) + " km/h");
 
         GridPane singleDayStats = new GridPane();
         final Label date = new Label("Date:");
@@ -100,31 +95,16 @@ class OneDayDataWithFrame extends SingleDayStats{
         return wholeFrameStats;
     }
 
-    static void colorFrames(ObservableList<OneDayDataWithFrame> frameListObs) {
-        for (OneDayDataWithFrame frame : frameListObs) {
-            if(frame.isNormalColorStyle()){
-                frame.getFrameStats().getStyleClass().set(0, "frameBlue");
-            } else {
-                frame.getFrameStats().getStyleClass().set(0, "frameYellow");
-            }
 
-            if(frame.isImClicked()) {
-                frame.getFrameStats().getStyleClass().set(0, "frameClicked");
-                frame.setImClicked(false);
-                frame.printSingleDayStats();
-            }
-        }
-    }
-
-    private boolean isImClicked() {
+    boolean isImClicked() {
         return imClicked;
     }
 
-    private void setImClicked(boolean imClicked) {
+    void setImClicked(boolean imClicked) {
         this.imClicked = imClicked;
     }
 
-    private boolean isNormalColorStyle() {
+    boolean isNormalColorStyle() {
         return normalColorStyle;
     }
 

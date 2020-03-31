@@ -12,23 +12,23 @@
 .frameBlue {
     -fx-border-width: 3;
     -fx-border-color: navy;
-    -fx-background-color: lightcyan;
+    -fx-background-color: honeydew;
 }
 
 .frameYellow {
     -fx-border-width: 3;
-    -fx-border-color: chocolate;
-    -fx-background-color: wheat;
+    -fx-border-color: brown;
+    -fx-background-color: ivory;
 }
 
 .frameEntered {
     -fx-border-width: 4;
-    -fx-border-color: orangered ;
-    -fx-background-color: mediumspringgreen ;
+    -fx-border-color: orangered;
+    -fx-background-color: lightskyblue;
 }
 
 .frameClicked {
     -fx-border-width: 4;
     -fx-border-color: red;
-    -fx-background-color: limegreen;
+    -fx-background-color: deepskyblue;
 }

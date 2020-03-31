@@ -9,9 +9,9 @@ import java.time.LocalTime;
 public class SingleDayStats {
 
     private ObservableList<TrackPoint> allTrackedPoints;
-    private ObservableList<Double> altArray = FXCollections.observableArrayList();
     private ObservableList<Double> distanceArray = FXCollections.observableArrayList();
     private ObservableList<Double> timeArray = FXCollections.observableArrayList();
+    private ObservableList<Double> altArray = FXCollections.observableArrayList();
     private ObservableList<Double> speedArray = FXCollections.observableArrayList();
 
     private LocalTime totalTime;
@@ -20,6 +20,8 @@ public class SingleDayStats {
     private double distUp;
     private double maxSpeed;
     private double maxAlt;
+
+    private double minAlt;
     private LocalDate date;
 
 
@@ -41,7 +43,7 @@ public class SingleDayStats {
 
     private void createArrays() {
         double alt, dist, time, absTime, speed;
-        double absDist = 0, distDown = 0, distUp = 0, maxSpeed = 0, maxAlt = 0;
+        double absDist = 0, distDown = 0, distUp = 0, maxSpeed = 0, maxAlt = 0, minAlt = 10000;
         for (int i = 0; i < allTrackedPoints.size()-1; i++) {
             dist = distanceBetweenPoints(allTrackedPoints.get(i), allTrackedPoints.get(i+1));
             time = timeBetweenPoints(allTrackedPoints.get(i), allTrackedPoints.get(i+1));
@@ -54,11 +56,13 @@ public class SingleDayStats {
                 } else {
                     distUp += dist;
                 }
-                if(speed > maxSpeed && speed < 100) {
+                if(speed > maxSpeed && speed < 70) {
                     maxSpeed = speed;
                 }
                 if(alt > maxAlt) {
                     maxAlt = alt;
+                } else if(alt < minAlt){
+                    minAlt = alt;
                 }
                 absDist += distanceBetweenPoints(allTrackedPoints.get(i), allTrackedPoints.get(i+1));
                 distanceArray.add(absDist / 1000);
@@ -71,6 +75,7 @@ public class SingleDayStats {
 //                System.out.println();
             }
         }
+        this.minAlt = minAlt;
         this.maxAlt = maxAlt;
         this.maxSpeed = maxSpeed;
         this.distDown = distDown;
@@ -134,11 +139,11 @@ public class SingleDayStats {
         return singleDayPointsList;
     }
 
-    public double getTotalDistance() {
+    double getTotalDistance() {
         return totalDistance;
     }
 
-    public LocalTime getTotalTime() {
+    LocalTime getTotalTime() {
         return totalTime;
     }
 
@@ -166,15 +171,18 @@ public class SingleDayStats {
         return distUp;
     }
 
-    public LocalDate getDate() {
+    LocalDate getDate() {
         return date;
     }
 
-    public double getMaxSpeed() {
+    double getMaxSpeed() {
         return maxSpeed;
     }
 
-    public double getMaxAlt() {
+    double getMaxAlt() {
         return maxAlt;
+    }
+    public double getMinAlt() {
+        return minAlt;
     }
 }

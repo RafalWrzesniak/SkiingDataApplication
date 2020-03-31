@@ -10,7 +10,9 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Group;
 import javafx.scene.Scene;
+import javafx.scene.chart.*;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.stage.FileChooser;
@@ -30,10 +32,10 @@ public class Main extends Application {
     public void start(Stage primaryStage) {
         Group root = new Group();
         Scene scene = new Scene(root, 1000, 700, Color.WHITE);
-//        scene.getStylesheets().addAll("/styles_v2.css", "/styles.css");
         scene.getStylesheets().add("");
         scene.getStylesheets().set(0, "/styles.css");
         Layout layout = new Layout(primaryStage);
+        primaryStage.getIcons().add(new Image(getClass().getResourceAsStream("/skiIcon.png") ));
         primaryStage.setScene(scene);
         primaryStage.setTitle("Your ski application");
         root.getChildren().add(layout.mainBorderPane);
@@ -54,12 +56,16 @@ class Layout {
     private VBox viewDataVBox = new VBox();
     private ScrollPane scrollPane = new ScrollPane();
     private StackPane mapViewPane = new StackPane();
+    private HBox displayStatsPane = new HBox();
     private LeafletMapView mapView = new LeafletMapView();
-    private AnchorPane charts = new AnchorPane();
+
     private ObservableList<OneDayDataWithFrame> oneDayDataList = FXCollections.observableArrayList();
 
     private Label chosenFileLabel = new Label();
     private Button chooseFileButton = new Button("Select file...");
+
+    AreaChart<Number, Number> chart;
+    NumberAxis yAxis;
 
     Layout(Stage primaryStage) {
         fileChooser(primaryStage);
@@ -72,15 +78,15 @@ class Layout {
     void setupAfterWindowShown(Stage primaryStage){
         scrollPane.setPrefWidth(217);
         mapViewPane.setMaxWidth(primaryStage.getScene().getWidth()-scrollPane.getPrefWidth());
-        mapViewPane.setMaxHeight(primaryStage.getScene().getHeight()-charts.getHeight()-fileChooserHBox.getHeight());
+        mapViewPane.setMaxHeight(primaryStage.getScene().getHeight()-displayStatsPane.getHeight()-fileChooserHBox.getHeight());
 
 
         primaryStage.getScene().heightProperty().addListener((obs, sceneHeightObs, newVal) -> {
             double sceneHeight = sceneHeightObs.doubleValue();
             scrollPane.setMaxHeight(sceneHeight-fileChooserHBox.getHeight());
             scrollPane.setPrefHeight(sceneHeight-fileChooserHBox.getHeight());
-            mapViewPane.setMaxHeight(sceneHeight-charts.getHeight()-fileChooserHBox.getHeight());
-            mapViewPane.setPrefHeight(sceneHeight-charts.getHeight()-fileChooserHBox.getHeight());
+            mapViewPane.setMaxHeight(sceneHeight-displayStatsPane.getHeight()-fileChooserHBox.getHeight());
+            mapViewPane.setPrefHeight(sceneHeight-displayStatsPane.getHeight()-fileChooserHBox.getHeight());
             if(dateColumnVBox.getHeight() > sceneHeight-fileChooserHBox.getHeight()){
                 scrollPane.setPrefWidth(dateColumnVBox.getWidth()+15);
             } else {
@@ -170,7 +176,7 @@ class Layout {
         dateColumnVBox.setStyle("-fx-background-color: dodgerblue;");
         dateColumnVBox.setSpacing(3);
         dateColumnVBox.setPadding(new Insets(3, 3,3,3));
-        dateColumnVBox.setOnMouseClicked(mouseEvent -> OneDayDataWithFrame.colorFrames(oneDayDataList));
+        dateColumnVBox.setOnMouseClicked(mouseEvent -> colorFramesAndDisplayData(oneDayDataList));
 
 
         scrollPane.hbarPolicyProperty().setValue(ScrollPane.ScrollBarPolicy.NEVER);
@@ -188,16 +194,65 @@ class Layout {
     }
 
     private void center() {
+        displayStatsPane.setPrefHeight(300);
+        NumberAxis xAxis = new NumberAxis();
+        xAxis.setLabel("Distance [km]");
+        yAxis = new NumberAxis();
+        yAxis.setLabel("Altitude [m]");
 
-        charts.setPrefHeight(150);
-        viewDataVBox.getChildren().addAll(charts, mapViewPane);
+        xAxis.setAutoRanging(true);
+        xAxis.setTickUnit(25);
+        yAxis.setTickUnit(300);
+        yAxis.setAutoRanging(false);
+        chart = new AreaChart<>(xAxis, yAxis);
+        chart.setTitle("Altitude by distance");
+        chart.legendVisibleProperty().setValue(false);
+        chart.createSymbolsProperty().setValue(false);
+        displayStatsPane.getChildren().add(chart);
+
+
+
+
+
+        viewDataVBox.getChildren().addAll(displayStatsPane, mapViewPane);
         viewDataVBox.setPadding(new Insets(0,5,5,0));
-
 
         mapViewPane.getChildren().add(mapView);
         mapView.displayMap(new MapConfig());
 
 
+    }
+
+    void colorFramesAndDisplayData(ObservableList<OneDayDataWithFrame> frameListObs) {
+        for (OneDayDataWithFrame frame : frameListObs) {
+            if(frame.isNormalColorStyle()){
+                frame.getFrameStats().getStyleClass().set(0, "frameBlue");
+            } else {
+                frame.getFrameStats().getStyleClass().set(0, "frameYellow");
+            }
+
+            if(frame.isImClicked()) {
+                frame.getFrameStats().getStyleClass().set(0, "frameClicked");
+                frame.setImClicked(false);
+                frame.printSingleDayStats();
+                displayDayData(frame);
+            }
+        }
+    }
+
+
+    private void displayDayData(OneDayDataWithFrame frame) {
+
+        if(chart.getData().size() > 0) {
+            chart.getData().remove(0);
+        }
+        AreaChart.Series<Number, Number> axisData = new AreaChart.Series<>();
+        for(int i = 0; i < frame.getDistanceArray().size(); i++) {
+            axisData.getData().add(new XYChart.Data<>(frame.getDistanceArray().get(i), frame.getAltArray().get(i)));
+        }
+        yAxis.setUpperBound(Math.round(frame.getMaxAlt()*1.05));
+        yAxis.setLowerBound(Math.round(frame.getMinAlt()*0.95));
+        chart.getData().add(axisData);
     }
 
 
