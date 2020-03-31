@@ -56,7 +56,7 @@ class Layout {
     private StackPane mapViewPane = new StackPane();
     private LeafletMapView mapView = new LeafletMapView();
     private AnchorPane charts = new AnchorPane();
-    private ObservableList<GPXdataFrame> frameListObs;
+    private ObservableList<OneDayDataWithFrame> oneDayDataList = FXCollections.observableArrayList();
 
     private Label chosenFileLabel = new Label();
     private Button chooseFileButton = new Button("Select file...");
@@ -87,12 +87,10 @@ class Layout {
                 scrollPane.setPrefWidth(dateColumnVBox.getWidth()+5);
             }
         });
-        primaryStage.getScene().widthProperty().addListener((obs, oldVal, newVal) -> {
-            mapViewPane.setMaxWidth(primaryStage.getScene().getWidth()-scrollPane.getWidth());
-        });
+        primaryStage.getScene().widthProperty().addListener((obs, oldVal, newVal) -> mapViewPane.setMaxWidth(primaryStage.getScene().getWidth()-scrollPane.getWidth()));
 
 
-        insertContentToScrollPane(frameListObs);
+        insertContentToScrollPane(oneDayDataList);
     }
 
 
@@ -135,16 +133,21 @@ class Layout {
 
         try {
             ObservableList<TrackPoint> allTrackedPoints = gpXparser.parseXMLtoTrackPointList();
-            ObservableList<ObservableList<TrackPoint>> singleDayList = SingleDayStats.divideAllPointsToDays(allTrackedPoints);
-            for (TrackPoint trkpt: allTrackedPoints) {
-                trkpt.printTrackPoint();
-                System.out.println();
+            ObservableList<ObservableList<TrackPoint>> dayList = SingleDayStats.divideAllPointsToDays(allTrackedPoints);
+            for (int i = 0; i < dayList.size(); i++) {
+                if(i%2 == 0) {
+                    oneDayDataList.add(new OneDayDataWithFrame(dayList.get(i), dayList.get(i).get(0).getDate(), true));
+                } else {
+                    oneDayDataList.add(new OneDayDataWithFrame(dayList.get(i), dayList.get(i).get(0).getDate(), false));
+                }
             }
+            insertContentToScrollPane(oneDayDataList);
         } catch (Exception e) {
 //            e.printStackTrace();
             System.out.println("Errors in GPX file");
             return;
         }
+
 
         chosenFileLabel.setText(chosenFile.toString());
         chosenFileLabel.setStyle("-fx-border-color: limegreen; -fx-background-color: white; -fx-border-width: 3");
@@ -164,24 +167,10 @@ class Layout {
     }
 
     private void dateColumn() {
-        GPXdataFrame singleDayFrame = new GPXdataFrame("10.03.2020", "46", "5h 12m",
-                "57", "2596", true);
-        GPXdataFrame singleDayFrame2 = new GPXdataFrame("11.03.2020", "62", "6h 32m",
-                "63", "3126", false);
-        GPXdataFrame singleDayFrame3 = new GPXdataFrame("12.03.2020", "46", "5h 12m",
-                "57", "2596", true);
-        GPXdataFrame singleDayFrame4 = new GPXdataFrame("13.03.2020", "62", "6h 32m",
-                "63", "3126", false);
-        GPXdataFrame singleDayFrame5 = new GPXdataFrame("14.03.2020", "46", "5h 12m",
-                "57", "2596", true);
-        frameListObs = FXCollections.observableArrayList(singleDayFrame, singleDayFrame2,
-                                                                    singleDayFrame3, singleDayFrame4, singleDayFrame5);
-
-
         dateColumnVBox.setStyle("-fx-background-color: dodgerblue;");
         dateColumnVBox.setSpacing(3);
         dateColumnVBox.setPadding(new Insets(3, 3,3,3));
-        dateColumnVBox.setOnMouseClicked(mouseEvent -> colorFrames(frameListObs));
+        dateColumnVBox.setOnMouseClicked(mouseEvent -> OneDayDataWithFrame.colorFrames(oneDayDataList));
 
 
         scrollPane.hbarPolicyProperty().setValue(ScrollPane.ScrollBarPolicy.NEVER);
@@ -190,24 +179,9 @@ class Layout {
         scrollPane.setStyle("-fx-background: dodgerblue;");
     }
 
-    private void colorFrames(ObservableList<GPXdataFrame> frameListObs) {
-        for (GPXdataFrame frame : frameListObs) {
-            if(frame.getNormalColorStyle()){
-                frame.getFrameStats().getStyleClass().set(0, "frameBlue");
-            } else {
-                frame.getFrameStats().getStyleClass().set(0, "frameYellow");
-            }
 
-            if(frame.getImClicked()) {
-                frame.getFrameStats().getStyleClass().set(0, "frameClicked");
-                frame.setImClicked(false);
-            }
-        }
-
-    }
-
-    private void insertContentToScrollPane(ObservableList<GPXdataFrame> frameListObs) {
-        for (GPXdataFrame frame : frameListObs) {
+    private void insertContentToScrollPane(ObservableList<OneDayDataWithFrame> oneDayDataList) {
+        for (OneDayDataWithFrame frame : oneDayDataList) {
             dateColumnVBox.getChildren().add(frame.getFrameStats());
         }
         scrollPane.setContent(dateColumnVBox);

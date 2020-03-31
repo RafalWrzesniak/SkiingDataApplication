@@ -4,7 +4,7 @@ import java.time.LocalTime;
 import java.time.LocalDateTime;
 
 
-public class TrackPoint {
+class TrackPoint {
 
     private double lat;
     private double lon;
@@ -36,29 +36,29 @@ public class TrackPoint {
         this.time = LocalDateTime.parse(dateTime).toLocalTime();
     }
 
-    public void printTrackPoint() {
-        System.out.println(String.join(": ", "DateTime", String.join(" ", getDate().toString(), getTime().toString())));
-        System.out.println(String.join(": ", "Position", String.join(", ", String.valueOf(getLat()), String.valueOf(getLon()))));
-        System.out.println(String.join(": ", "Altitude", String.valueOf(getAlt())));
-    }
+//    void printTrackPoint() {
+//        System.out.println(String.join(": ", "DateTime", String.join(" ", getDate().toString(), getTime().toString())));
+//        System.out.println(String.join(": ", "Position", String.join(", ", String.valueOf(getLat()), String.valueOf(getLon()))));
+//        System.out.println(String.join(": ", "Altitude", String.valueOf(getAlt())));
+//    }
 
-    public double getLat() {
+    double getLat() {
         return lat;
     }
 
-    public double getLon() {
+    double getLon() {
         return lon;
     }
 
-    public double getAlt() {
+    double getAlt() {
         return alt;
     }
 
-    public LocalDate getDate() {
+    LocalDate getDate() {
         return date;
     }
 
-    public LocalTime getTime() {
+    LocalTime getTime() {
         return time;
     }
 }

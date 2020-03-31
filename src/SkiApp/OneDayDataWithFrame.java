@@ -1,5 +1,6 @@
 package SkiApp;
 
+import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
@@ -7,43 +8,46 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
+import java.time.LocalDate;
 
-class GPXdataFrame {
-    private GridPane singleDayStats = new GridPane();
 
-    final private Label date = new Label("Date:");
-    final private Label distance = new Label("Route:");
-    final private Label time = new Label("Time:");
-    final private Label speed = new Label("Speed:");
-    final private Label altitude = new Label("Height:");
-
-    private Label dateValue = new Label();
-    private Label distanceValue = new Label();
-    private Label timeValue = new Label();
-    private Label speedValue = new Label();
-    private Label altitudeValue = new Label();
-
-    private Label[] labelDate = {date, dateValue};
-//    private Label[] labels = {distance, time, speed, altitude};
-    private Label[] labelValues = {distanceValue, timeValue, speedValue, altitudeValue};
-    private Label[] labelsAll = {date, dateValue, distance, time, speed, altitude, distanceValue, timeValue, speedValue, altitudeValue};
+class OneDayDataWithFrame extends SingleDayStats{
 
     private boolean imClicked = false;
     private boolean normalColorStyle;
     private VBox wholeFrameStats;
 
-    GPXdataFrame(String dateValue, String distanceValue, String timeValue, String speedValue, String altitudeValue, boolean normalColorStyle) {
-        this.dateValue.setText(dateValue);
-        this.distanceValue.setText(String.join(" ",distanceValue, "km"));
-        this.timeValue.setText(timeValue);
-        this.speedValue.setText(String.join(" ", speedValue, "km/h"));
-        this.altitudeValue.setText(String.join(" ", altitudeValue, "m"));
+    OneDayDataWithFrame(ObservableList<TrackPoint> allTrackedPoints, LocalDate date, boolean normalColorStyle) {
+        super(allTrackedPoints, date);
         this.normalColorStyle = normalColorStyle;
         this.wholeFrameStats = createGPXdataFrame();
     }
 
 
     private VBox createGPXdataFrame() {
+
+        Label dateValue = new Label(super.getDate().toString());
+        Label distanceValue = new Label(Math.round(super.getTotalDistance()) + " km");
+        Label timeValue = new Label(super.getTotalTime().getHour() + "h " + super.getTotalTime().getMinute() + "s");
+        Label altitudeValue = new Label(Math.round(super.getMaxAlt()) + " m");
+        Label speedValue;
+        if(super.getMaxSpeed() < 100) {
+            speedValue = new Label(Math.round(super.getMaxSpeed()) + " km/h");
+        } else {
+            speedValue = new Label("99 km/h");
+        }
+
+        GridPane singleDayStats = new GridPane();
+        final Label date = new Label("Date:");
+        final Label distance = new Label("Route:");
+        final Label time = new Label("Time:");
+        final Label speed = new Label("Speed:");
+        final Label altitude = new Label("Height:");
+
+        Label[] labelDate = {date, dateValue};
+//        Label[] labels = {distance, time, speed, altitude};
+        Label[] labelValues = {distanceValue, timeValue, speedValue, altitudeValue};
+        Label[] labelsAll = {date, dateValue, distance, time, speed, altitude, distanceValue, timeValue, speedValue, altitudeValue};
 
         for (Label label : labelsAll) {
             label.setPrefWidth(50);
@@ -55,6 +59,7 @@ class GPXdataFrame {
         }
         for (Label label : labelValues) {
             label.getStyleClass().add("labelValue");
+            label.setPrefWidth(60);
         }
 
         singleDayStats.gridLinesVisibleProperty().setValue(true);
@@ -95,16 +100,31 @@ class GPXdataFrame {
         return wholeFrameStats;
     }
 
+    static void colorFrames(ObservableList<OneDayDataWithFrame> frameListObs) {
+        for (OneDayDataWithFrame frame : frameListObs) {
+            if(frame.isNormalColorStyle()){
+                frame.getFrameStats().getStyleClass().set(0, "frameBlue");
+            } else {
+                frame.getFrameStats().getStyleClass().set(0, "frameYellow");
+            }
 
-    boolean getImClicked() {
+            if(frame.isImClicked()) {
+                frame.getFrameStats().getStyleClass().set(0, "frameClicked");
+                frame.setImClicked(false);
+                frame.printSingleDayStats();
+            }
+        }
+    }
+
+    private boolean isImClicked() {
         return imClicked;
     }
 
-    void setImClicked(boolean imClicked) {
+    private void setImClicked(boolean imClicked) {
         this.imClicked = imClicked;
     }
 
-    boolean getNormalColorStyle() {
+    private boolean isNormalColorStyle() {
         return normalColorStyle;
     }
 
