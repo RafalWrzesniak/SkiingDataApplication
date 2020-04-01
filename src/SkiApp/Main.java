@@ -31,7 +31,7 @@ public class Main extends Application {
     @Override
     public void start(Stage primaryStage) {
         Group root = new Group();
-        Scene scene = new Scene(root, 1000, 700, Color.WHITE);
+        Scene scene = new Scene(root, 1000, 850, Color.WHITE);
         scene.getStylesheets().add("");
         scene.getStylesheets().set(0, "/styles.css");
         Layout layout = new Layout(primaryStage);
@@ -64,8 +64,10 @@ class Layout {
     private Label chosenFileLabel = new Label();
     private Button chooseFileButton = new Button("Select file...");
 
-    AreaChart<Number, Number> chart;
-    NumberAxis yAxis;
+    MyChart chartDist;
+    MyChart chartTime;
+    ComboBox<String> chartsType;
+    OneDayDataWithFrame currentFrame;
 
     Layout(Stage primaryStage) {
         fileChooser(primaryStage);
@@ -78,11 +80,14 @@ class Layout {
     void setupAfterWindowShown(Stage primaryStage){
         scrollPane.setPrefWidth(217);
         mapViewPane.setMaxWidth(primaryStage.getScene().getWidth()-scrollPane.getPrefWidth());
+        displayStatsPane.setMaxWidth(primaryStage.getScene().getWidth()-scrollPane.getPrefWidth());
         mapViewPane.setMaxHeight(primaryStage.getScene().getHeight()-displayStatsPane.getHeight()-fileChooserHBox.getHeight());
 
+        primaryStage.fullScreenProperty().addListener(observable -> primaryStage.getWidth());
 
         primaryStage.getScene().heightProperty().addListener((obs, sceneHeightObs, newVal) -> {
             double sceneHeight = sceneHeightObs.doubleValue();
+            System.out.println(sceneHeight);
             scrollPane.setMaxHeight(sceneHeight-fileChooserHBox.getHeight());
             scrollPane.setPrefHeight(sceneHeight-fileChooserHBox.getHeight());
             mapViewPane.setMaxHeight(sceneHeight-displayStatsPane.getHeight()-fileChooserHBox.getHeight());
@@ -93,7 +98,11 @@ class Layout {
                 scrollPane.setPrefWidth(dateColumnVBox.getWidth()+5);
             }
         });
-        primaryStage.getScene().widthProperty().addListener((obs, oldVal, newVal) -> mapViewPane.setMaxWidth(primaryStage.getScene().getWidth()-scrollPane.getWidth()));
+
+        primaryStage.getScene().widthProperty().addListener((obs, oldVal, newVal) -> {
+            mapViewPane.setMaxWidth(primaryStage.getScene().getWidth()-scrollPane.getWidth());
+            displayStatsPane.setMaxWidth(primaryStage.getScene().getWidth()-scrollPane.getPrefWidth());
+        });
 
 
         insertContentToScrollPane(oneDayDataList);
@@ -194,26 +203,36 @@ class Layout {
     }
 
     private void center() {
-        displayStatsPane.setPrefHeight(300);
-        NumberAxis xAxis = new NumberAxis();
-        xAxis.setLabel("Distance [km]");
-        yAxis = new NumberAxis();
-        yAxis.setLabel("Altitude [m]");
+        displayStatsPane.setPrefHeight(400);
 
-        xAxis.setAutoRanging(true);
-        xAxis.setTickUnit(25);
-        yAxis.setTickUnit(300);
-        yAxis.setAutoRanging(false);
-        chart = new AreaChart<>(xAxis, yAxis);
-        chart.setTitle("Altitude by distance");
-        chart.legendVisibleProperty().setValue(false);
-        chart.createSymbolsProperty().setValue(false);
-        displayStatsPane.getChildren().add(chart);
+        chartDist = new MyChart(new NumberAxis(), new NumberAxis(), true);
+        chartTime = new MyChart(new NumberAxis(), new NumberAxis(), false);
+        VBox forCharts = new VBox(chartDist.chart, chartTime.chart);
+        GridPane preciseData = new GridPane();
+        preciseData.setMinWidth(300);
+        preciseData.setMinHeight(300);
+        preciseData.setStyle("-fx-background-color: blue");
+
+        GridPane chartsControl = new GridPane();
+        chartsControl.setMinHeight(100);
+        chartsControl.setStyle("-fx-background-color: gray");
 
 
+        chartsType = new ComboBox<>(FXCollections.observableArrayList("Altitude", "Speed"));
+        chartsType.setValue("Altitude");
+        chartsType.setOnAction(actionEvent -> {
+            chartTime.setYaxisLabel(chartsType.getValue());
+            chartDist.setYaxisLabel(chartsType.getValue());
+            loadDataToCharts(currentFrame);
+        });
+        chartsControl.add(chartsType, 0, 0);
 
 
 
+
+
+        VBox preciseAndControl = new VBox(preciseData, chartsControl);
+        displayStatsPane.getChildren().addAll(preciseAndControl, forCharts);
         viewDataVBox.getChildren().addAll(displayStatsPane, mapViewPane);
         viewDataVBox.setPadding(new Insets(0,5,5,0));
 
@@ -235,26 +254,28 @@ class Layout {
                 frame.getFrameStats().getStyleClass().set(0, "frameClicked");
                 frame.setImClicked(false);
                 frame.printSingleDayStats();
-                displayDayData(frame);
+                loadDataToCharts(frame);
+                currentFrame = frame;
             }
         }
     }
 
 
-    private void displayDayData(OneDayDataWithFrame frame) {
-
-        if(chart.getData().size() > 0) {
-            chart.getData().remove(0);
+    private void loadDataToCharts(OneDayDataWithFrame frame) {
+        try {
+            if (chartsType.getValue().equals("Altitude")) {
+                chartDist.loadData(frame.getDistanceArray(), frame.getAltArray());
+                chartTime.loadData(frame.getTimeArray(), frame.getAltArray());
+            } else if (chartsType.getValue().equals("Speed")) {
+                chartDist.loadData(frame.getDistanceArray(), frame.getSpeedArray());
+                chartTime.loadData(frame.getTimeArray(), frame.getSpeedArray());
+            }
+        } catch (NullPointerException e) {
+            e.getMessage();
         }
-        AreaChart.Series<Number, Number> axisData = new AreaChart.Series<>();
-        for(int i = 0; i < frame.getDistanceArray().size(); i++) {
-            axisData.getData().add(new XYChart.Data<>(frame.getDistanceArray().get(i), frame.getAltArray().get(i)));
-        }
-        yAxis.setUpperBound(Math.round(frame.getMaxAlt()*1.05));
-        yAxis.setLowerBound(Math.round(frame.getMinAlt()*0.95));
-        chart.getData().add(axisData);
     }
 
 
 
-        }
+
+}
