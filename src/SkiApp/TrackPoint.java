@@ -36,11 +36,11 @@ class TrackPoint {
         this.time = LocalDateTime.parse(dateTime).toLocalTime();
     }
 
-//    void printTrackPoint() {
-//        System.out.println(String.join(": ", "DateTime", String.join(" ", getDate().toString(), getTime().toString())));
-//        System.out.println(String.join(": ", "Position", String.join(", ", String.valueOf(getLat()), String.valueOf(getLon()))));
-//        System.out.println(String.join(": ", "Altitude", String.valueOf(getAlt())));
-//    }
+    void printTrackPoint() {
+        System.out.println(String.join(": ", "DateTime", String.join(" ", getDate().toString(), getTime().toString())));
+        System.out.println(String.join(": ", "Position", String.join(", ", String.valueOf(getLat()), String.valueOf(getLon()))));
+        System.out.println(String.join(": ", "Altitude", String.valueOf(getAlt())));
+    }
 
     double getLat() {
         return lat;

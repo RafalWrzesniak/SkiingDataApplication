@@ -64,10 +64,10 @@ class Layout {
     private Label chosenFileLabel = new Label();
     private Button chooseFileButton = new Button("Select file...");
 
-    MyChart chartDist;
-    MyChart chartTime;
-    ComboBox<String> chartsType;
-    OneDayDataWithFrame currentFrame;
+    private MyChart chartAlt;
+    private MyChart chartSpeed;
+    private ComboBox<String> chartsType;
+    private int currentFrameId;
 
     Layout(Stage primaryStage) {
         fileChooser(primaryStage);
@@ -121,7 +121,7 @@ class Layout {
         fileChooserHBox.setPrefWidth(Screen.getPrimary().getVisualBounds().getWidth());
         fileChooserHBox.setSpacing(20);
         fileChooserHBox.setPadding(new Insets(10, 0, 10, 10));
-        fileChooserHBox.setStyle("-fx-background-color: dodgerblue ");
+        fileChooserHBox.setStyle("-fx-background-color: dodgerblue;");
 //        // label
 //        Label chosenFileLabel = new Label();
         chosenFileLabel.setMinHeight(25);
@@ -149,16 +149,17 @@ class Layout {
         try {
             ObservableList<TrackPoint> allTrackedPoints = gpXparser.parseXMLtoTrackPointList();
             ObservableList<ObservableList<TrackPoint>> dayList = SingleDayStats.divideAllPointsToDays(allTrackedPoints);
+            oneDayDataList.removeAll(oneDayDataList);
             for (int i = 0; i < dayList.size(); i++) {
                 if(i%2 == 0) {
-                    oneDayDataList.add(new OneDayDataWithFrame(dayList.get(i), dayList.get(i).get(0).getDate(), true));
+                    oneDayDataList.add(new OneDayDataWithFrame(dayList.get(i), true));
                 } else {
-                    oneDayDataList.add(new OneDayDataWithFrame(dayList.get(i), dayList.get(i).get(0).getDate(), false));
+                    oneDayDataList.add(new OneDayDataWithFrame(dayList.get(i), false));
                 }
             }
             insertContentToScrollPane(oneDayDataList);
         } catch (Exception e) {
-//            e.printStackTrace();
+            e.printStackTrace();
             System.out.println("Errors in GPX file");
             return;
         }
@@ -205,30 +206,53 @@ class Layout {
     private void center() {
         displayStatsPane.setPrefHeight(400);
 
-        chartDist = new MyChart(new NumberAxis(), new NumberAxis(), true);
-        chartTime = new MyChart(new NumberAxis(), new NumberAxis(), false);
-        VBox forCharts = new VBox(chartDist.chart, chartTime.chart);
+        chartAlt = new MyChart(new NumberAxis(), new NumberAxis());
+        chartAlt.setYaxisLabel("Altitude");
+        chartAlt.setXaxisLabel("Distance");
+        chartSpeed = new MyChart(new NumberAxis(), new NumberAxis());
+        chartSpeed.setYaxisLabel("Speed");
+        chartSpeed.setXaxisLabel("Distance");
+        chartSpeed.chart.setStyle("-fx-stroke: #e9967a;");
+        VBox forCharts = new VBox(chartAlt.chart, chartSpeed.chart);
         GridPane preciseData = new GridPane();
         preciseData.setMinWidth(300);
         preciseData.setMinHeight(300);
-        preciseData.setStyle("-fx-background-color: blue");
+        preciseData.setStyle("-fx-background-color: dodgerblue");
 
         GridPane chartsControl = new GridPane();
         chartsControl.setMinHeight(100);
-        chartsControl.setStyle("-fx-background-color: gray");
+        chartsControl.setPadding(new Insets(20, 30, 27 ,30));
+        chartsControl.setHgap(30);
+        chartsControl.setVgap(4);
 
 
-        chartsType = new ComboBox<>(FXCollections.observableArrayList("Altitude", "Speed"));
-        chartsType.setValue("Altitude");
+        Label chartsColor = new Label("Charts color:");
+        chartsColor.setPrefWidth(105);
+        chartsColor.setAlignment(Pos.CENTER);
+        ColorPicker colorPicker = new ColorPicker();
+        colorPicker.setPrefWidth(105);
+        colorPicker.setOnAction(actionEvent -> System.out.println(colorPicker.getValue()));
+
+
+        Label chartsTypeLabel = new Label("Charts type:");
+        chartsTypeLabel.setPrefWidth(105);
+        chartsTypeLabel.setAlignment(Pos.CENTER);
+        chartsType = new ComboBox<>(FXCollections.observableArrayList("Distance", "Time"));
+        chartsType.setPrefWidth(105);
+        chartsType.setValue("Distance");
         chartsType.setOnAction(actionEvent -> {
-            chartTime.setYaxisLabel(chartsType.getValue());
-            chartDist.setYaxisLabel(chartsType.getValue());
-            loadDataToCharts(currentFrame);
+            chartSpeed.setXaxisLabel(chartsType.getValue());
+            try {
+                loadDataToCharts(oneDayDataList.get(currentFrameId));
+            } catch (IndexOutOfBoundsException e) {
+                e.getMessage();
+            }
         });
-        chartsControl.add(chartsType, 0, 0);
 
-
-
+        chartsControl.add(chartsColor,0, 0);
+        chartsControl.add(chartsTypeLabel,1, 0);
+        chartsControl.add(colorPicker, 0, 1);
+        chartsControl.add(chartsType, 1, 1);
 
 
         VBox preciseAndControl = new VBox(preciseData, chartsControl);
@@ -242,7 +266,7 @@ class Layout {
 
     }
 
-    void colorFramesAndDisplayData(ObservableList<OneDayDataWithFrame> frameListObs) {
+    private void colorFramesAndDisplayData(ObservableList<OneDayDataWithFrame> frameListObs) {
         for (OneDayDataWithFrame frame : frameListObs) {
             if(frame.isNormalColorStyle()){
                 frame.getFrameStats().getStyleClass().set(0, "frameBlue");
@@ -255,24 +279,20 @@ class Layout {
                 frame.setImClicked(false);
                 frame.printSingleDayStats();
                 loadDataToCharts(frame);
-                currentFrame = frame;
+                currentFrameId = frameListObs.indexOf(frame);
             }
         }
     }
 
 
     private void loadDataToCharts(OneDayDataWithFrame frame) {
-        try {
-            if (chartsType.getValue().equals("Altitude")) {
-                chartDist.loadData(frame.getDistanceArray(), frame.getAltArray());
-                chartTime.loadData(frame.getTimeArray(), frame.getAltArray());
-            } else if (chartsType.getValue().equals("Speed")) {
-                chartDist.loadData(frame.getDistanceArray(), frame.getSpeedArray());
-                chartTime.loadData(frame.getTimeArray(), frame.getSpeedArray());
+            if (chartsType.getValue().equals("Distance")) {
+                chartAlt.loadData(frame.getDistanceArray(), frame.getAltArray());
+                chartSpeed.loadData(frame.getDistanceArray(), frame.getSpeedArray());
+            } else if (chartsType.getValue().equals("Time")) {
+                chartAlt.loadData(frame.getTimeArray(), frame.getAltArray());
+                chartSpeed.loadData(frame.getTimeArray(), frame.getSpeedArray());
             }
-        } catch (NullPointerException e) {
-            e.getMessage();
-        }
     }
 
 

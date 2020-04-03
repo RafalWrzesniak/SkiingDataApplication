@@ -2,34 +2,27 @@ package SkiApp;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import java.io.File;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
 public class SingleDayStats {
 
-    private ObservableList<TrackPoint> allTrackedPoints;
     private ObservableList<Double> distanceArray = FXCollections.observableArrayList();
     private ObservableList<Double> timeArray = FXCollections.observableArrayList();
     private ObservableList<Double> altArray = FXCollections.observableArrayList();
     private ObservableList<Double> speedArray = FXCollections.observableArrayList();
 
+    private double totalDistance, distDown, distUp, maxSpeed, maxAlt, minAlt;
     private LocalTime totalTime;
-    private double totalDistance;
-    private double distDown;
-    private double distUp;
-    private double maxSpeed;
-    private double maxAlt;
-
-    private double minAlt;
     private LocalDate date;
 
 
-    SingleDayStats(ObservableList<TrackPoint> allTrackedPoints, LocalDate date) {
-        setAllTrackedPoints(allTrackedPoints);
-        this.date = date;
-        createArrays();
-        calcTotalTime();
+    SingleDayStats(ObservableList<TrackPoint> allTrackedPoints) {
+        createArrays(allTrackedPoints);
+        calcTotalTime(allTrackedPoints);
+        this.date = allTrackedPoints.get(0).getDate();
     }
 
     void printSingleDayStats() {
@@ -41,51 +34,76 @@ public class SingleDayStats {
         System.out.println();
     }
 
-    private void createArrays() {
+    private void createArrays(ObservableList<TrackPoint> allTrackedPoints) {
         double alt, dist, time, absTime, speed;
-        double absDist = 0, distDown = 0, distUp = 0, maxSpeed = 0, maxAlt = 0, minAlt = 10000;
-        for (int i = 0; i < allTrackedPoints.size()-1; i++) {
-            dist = distanceBetweenPoints(allTrackedPoints.get(i), allTrackedPoints.get(i+1));
-            time = timeBetweenPoints(allTrackedPoints.get(i), allTrackedPoints.get(i+1));
+        double absDist = 0, distDown = 0, distUp = 0, maxAlt = 0, minAlt = 10000;
+        ObservableList<Double> distanceArray = FXCollections.observableArrayList();
+        ObservableList<Double> timeArray = FXCollections.observableArrayList();
+        ObservableList<Double> altArray = FXCollections.observableArrayList();
+        ObservableList<Double> speedArray = FXCollections.observableArrayList();
+        for (int i = 1; i < allTrackedPoints.size(); i++) {
+            dist = distanceBetweenPoints(allTrackedPoints.get(i), allTrackedPoints.get(i-1));
+            time = timeBetweenPoints(allTrackedPoints.get(i), allTrackedPoints.get(i-1));
             speed = (dist/time)*3.6;
             alt = allTrackedPoints.get(i).getAlt();
-            absTime = timeBetweenPoints(allTrackedPoints.get(0), allTrackedPoints.get(i));
+            absTime = timeBetweenPoints(allTrackedPoints.get(i), allTrackedPoints.get(0));
+
             if(dist < 1000) {
-                if(alt > allTrackedPoints.get(i+1).getAlt()) {
+                if(alt < allTrackedPoints.get(i-1).getAlt()) {
                     distDown += dist;
                 } else {
                     distUp += dist;
-                }
-                if(speed > maxSpeed && speed < 70) {
-                    maxSpeed = speed;
                 }
                 if(alt > maxAlt) {
                     maxAlt = alt;
                 } else if(alt < minAlt){
                     minAlt = alt;
                 }
-                absDist += distanceBetweenPoints(allTrackedPoints.get(i), allTrackedPoints.get(i+1));
+                absDist += distanceBetweenPoints(allTrackedPoints.get(i), allTrackedPoints.get(i-1));
                 distanceArray.add(absDist / 1000);
                 altArray.add(alt);
-                timeArray.add(absTime);
+                timeArray.add(absTime / 3600);
+                if(speedArray.size() == 0 || speed < (speedArray.get(speedArray.size()-1)+1)*5) {
+                    speedArray.add(speed);
+                } else {
+                    speedArray.add(speedArray.get(speedArray.size()-1));
+                }
+
+            } else if (i == 1){
                 speedArray.add(speed);
-            } else {
-//                allTrackedPoints.get(i).printTrackPoint();
-//                allTrackedPoints.get(i+1).printTrackPoint();
-//                System.out.println();
             }
         }
+
+        this.distanceArray = distanceArray;
+        this.timeArray = timeArray;
+        this.altArray = altArray;
+        this.speedArray = removeTooBigValuesAndCalcMaxSpeed(speedArray);
+
         this.minAlt = minAlt;
         this.maxAlt = maxAlt;
-        this.maxSpeed = maxSpeed;
         this.distDown = distDown;
         this.distUp = distUp;
         this.totalDistance = distanceArray.get(distanceArray.size()-1);
     }
 
+    private ObservableList<Double> removeTooBigValuesAndCalcMaxSpeed(ObservableList<Double> speedArray) {
+        double sumSpeed = 0, maxSpeed = 0;
+        for (Double speed : speedArray) {
+            sumSpeed += speed;
+        }
+        double mediumSpeed = sumSpeed/speedArray.size();
+        for(int i = 1; i < speedArray.size(); i++) {
+            if(speedArray.get(i) > mediumSpeed * 6) {
+                speedArray.set(i, speedArray.get(i-1));
+            }
+            if(speedArray.get(i) > maxSpeed) maxSpeed = speedArray.get(i);
+        }
+        this.maxSpeed = maxSpeed;
+        return speedArray;
+    }
 
 
-    private void calcTotalTime() {
+    private void calcTotalTime(ObservableList<TrackPoint> allTrackedPoints) {
         int hours = Duration.between(allTrackedPoints.get(0).getTime(), allTrackedPoints.get(allTrackedPoints.size()-1).getTime()).toHoursPart();
         int min = Duration.between(allTrackedPoints.get(0).getTime(), allTrackedPoints.get(allTrackedPoints.size()-1).getTime()).toMinutesPart();
         int sec = Duration.between(allTrackedPoints.get(0).getTime(), allTrackedPoints.get(allTrackedPoints.size()-1).getTime()).toSecondsPart();
@@ -94,7 +112,7 @@ public class SingleDayStats {
 
 
     private long timeBetweenPoints(TrackPoint trackPoint1, TrackPoint trackPoint2) {
-        return Duration.between(trackPoint1.getTime(), trackPoint2.getTime()).toSeconds();
+        return Duration.between(trackPoint2.getTime(), trackPoint1.getTime()).toSeconds();
     }
 
 
@@ -115,9 +133,6 @@ public class SingleDayStats {
         return Math.sqrt(Math.pow(dist, 2) + Math.pow(dAlt, 2));
     }
 
-    private void setAllTrackedPoints(ObservableList<TrackPoint> allTrackedPoints) {
-        this.allTrackedPoints = allTrackedPoints;
-    }
 
     static ObservableList<ObservableList<TrackPoint>> divideAllPointsToDays(ObservableList<TrackPoint> allPoints) {
         ObservableList<ObservableList<TrackPoint>> singleDayPointsList = FXCollections.observableArrayList();
@@ -185,4 +200,5 @@ public class SingleDayStats {
     public double getMinAlt() {
         return minAlt;
     }
+
 }

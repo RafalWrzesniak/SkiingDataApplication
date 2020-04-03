@@ -8,8 +8,6 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
-import java.time.LocalDate;
-
 
 class OneDayDataWithFrame extends SingleDayStats{
 
@@ -17,8 +15,8 @@ class OneDayDataWithFrame extends SingleDayStats{
     private boolean normalColorStyle;
     private VBox wholeFrameStats;
 
-    OneDayDataWithFrame(ObservableList<TrackPoint> allTrackedPoints, LocalDate date, boolean normalColorStyle) {
-        super(allTrackedPoints, date);
+    OneDayDataWithFrame(ObservableList<TrackPoint> allTrackedPoints, boolean normalColorStyle) {
+        super(allTrackedPoints);
         this.normalColorStyle = normalColorStyle;
         this.wholeFrameStats = createGPXdataFrame();
     }
