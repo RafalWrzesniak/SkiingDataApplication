@@ -36,11 +36,7 @@ class MyChart extends AreaChart{
     void loadData(ObservableList<Double> xData, ObservableList<Double> yData) {
 
         // clear previous charts
-        if(chart.getData().size() > 0) {
-            for(int i = 0; i < chart.getData().size(); i++) {
-                chart.getData().remove(i);
-            }
-        }
+        chart.getData().clear();
 
         // calc max value on Y
         double yMax = 0, yMin = 10000;

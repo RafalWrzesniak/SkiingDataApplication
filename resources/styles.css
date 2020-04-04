@@ -32,3 +32,13 @@
     -fx-border-color: red;
     -fx-background-color: deepskyblue;
 }
+
+.mainLeftBackground {
+    -fx-background: cornflowerblue;
+    -fx-background-color: cornflowerblue;
+}
+
+.borderLine {
+    -fx-border-width: 2;
+    -fx-border-color: slategrey   ;
+}

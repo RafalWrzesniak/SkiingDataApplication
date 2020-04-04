@@ -2,12 +2,11 @@ package SkiApp;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import java.io.File;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
-public class SingleDayStats {
+class SingleDayStats {
 
     private ObservableList<Double> distanceArray = FXCollections.observableArrayList();
     private ObservableList<Double> timeArray = FXCollections.observableArrayList();
@@ -17,6 +16,7 @@ public class SingleDayStats {
     private double totalDistance, distDown, distUp, maxSpeed, maxAlt, minAlt;
     private LocalTime totalTime;
     private LocalDate date;
+    private double avgSpeed;
 
 
     SingleDayStats(ObservableList<TrackPoint> allTrackedPoints) {
@@ -28,8 +28,8 @@ public class SingleDayStats {
     void printSingleDayStats() {
         System.out.println("Total time: " + getTotalTime());
         System.out.printf("Total distance: %.2f km %n", getTotalDistance());
-        System.out.printf("Distance down: %.2f km %n", distDown/1000);
-        System.out.printf("Distance up: %.2f km %n", distUp/1000);
+        System.out.printf("Distance down: %.2f km %n", distDown);
+        System.out.printf("Distance up: %.2f km %n", distUp);
         System.out.printf("Max speed: %.2f km/h %n", maxSpeed);
         System.out.println();
     }
@@ -47,31 +47,28 @@ public class SingleDayStats {
             speed = (dist/time)*3.6;
             alt = allTrackedPoints.get(i).getAlt();
             absTime = timeBetweenPoints(allTrackedPoints.get(i), allTrackedPoints.get(0));
+            if (i == 1) speedArray.add(speed);
 
-            if(dist < 1000) {
-                if(alt < allTrackedPoints.get(i-1).getAlt()) {
-                    distDown += dist;
-                } else {
-                    distUp += dist;
-                }
-                if(alt > maxAlt) {
-                    maxAlt = alt;
-                } else if(alt < minAlt){
-                    minAlt = alt;
-                }
-                absDist += distanceBetweenPoints(allTrackedPoints.get(i), allTrackedPoints.get(i-1));
-                distanceArray.add(absDist / 1000);
-                altArray.add(alt);
-                timeArray.add(absTime / 3600);
-                if(speedArray.size() == 0 || speed < (speedArray.get(speedArray.size()-1)+1)*5) {
-                    speedArray.add(speed);
-                } else {
-                    speedArray.add(speedArray.get(speedArray.size()-1));
-                }
-
-            } else if (i == 1){
-                speedArray.add(speed);
+            if(alt < allTrackedPoints.get(i-1).getAlt()) {
+                distDown += dist;
+            } else {
+                distUp += dist;
             }
+            if(alt > maxAlt) {
+                maxAlt = alt;
+            } else if(alt < minAlt){
+                minAlt = alt;
+            }
+            absDist += distanceBetweenPoints(allTrackedPoints.get(i), allTrackedPoints.get(i-1));
+            distanceArray.add(absDist / 1000);
+            altArray.add(alt);
+            timeArray.add(absTime / 3600);
+            if(speedArray.size() == 0 || speed < (speedArray.get(speedArray.size()-1)+1)*5) {
+                speedArray.add(speed);
+            } else {
+                speedArray.add(speedArray.get(speedArray.size()-1));
+            }
+
         }
 
         this.distanceArray = distanceArray;
@@ -81,24 +78,28 @@ public class SingleDayStats {
 
         this.minAlt = minAlt;
         this.maxAlt = maxAlt;
-        this.distDown = distDown;
-        this.distUp = distUp;
+        this.distDown = distDown/1000;
+        this.distUp = distUp/1000;
         this.totalDistance = distanceArray.get(distanceArray.size()-1);
     }
 
     private ObservableList<Double> removeTooBigValuesAndCalcMaxSpeed(ObservableList<Double> speedArray) {
-        double sumSpeed = 0, maxSpeed = 0;
+        double sumSpeed = 0, maxSpeed = 0, sample = 0;
         for (Double speed : speedArray) {
-            sumSpeed += speed;
+            if(speed > 2) {
+                sumSpeed += speed;
+                sample += 1;
+            }
         }
-        double mediumSpeed = sumSpeed/speedArray.size();
+        double avgSpeed = sumSpeed/sample;
         for(int i = 1; i < speedArray.size(); i++) {
-            if(speedArray.get(i) > mediumSpeed * 6) {
+            if(speedArray.get(i) > avgSpeed * 5) {
                 speedArray.set(i, speedArray.get(i-1));
             }
             if(speedArray.get(i) > maxSpeed) maxSpeed = speedArray.get(i);
         }
         this.maxSpeed = maxSpeed;
+        this.avgSpeed = avgSpeed;
         return speedArray;
     }
 
@@ -162,27 +163,27 @@ public class SingleDayStats {
         return totalTime;
     }
 
-    public ObservableList<Double> getAltArray() {
+    ObservableList<Double> getAltArray() {
         return altArray;
     }
 
-    public ObservableList<Double> getDistanceArray() {
+    ObservableList<Double> getDistanceArray() {
         return distanceArray;
     }
 
-    public ObservableList<Double> getTimeArray() {
+    ObservableList<Double> getTimeArray() {
         return timeArray;
     }
 
-    public ObservableList<Double> getSpeedArray() {
+    ObservableList<Double> getSpeedArray() {
         return speedArray;
     }
 
-    public double getDistDown() {
+    double getDistDown() {
         return distDown;
     }
 
-    public double getDistUp() {
+    double getDistUp() {
         return distUp;
     }
 
@@ -197,8 +198,12 @@ public class SingleDayStats {
     double getMaxAlt() {
         return maxAlt;
     }
-    public double getMinAlt() {
+
+    double getMinAlt() {
         return minAlt;
     }
 
+    double getAvgSpeed() {
+        return avgSpeed;
+    }
 }
