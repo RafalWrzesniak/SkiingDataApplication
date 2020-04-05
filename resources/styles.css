@@ -42,3 +42,12 @@
     -fx-border-width: 2;
     -fx-border-color: slategrey   ;
 }
+
+.viewPreciseData {
+    -fx-background-color: aliceblue ;
+    -fx-font-size: 15; -fx-text-fill: black;
+    -fx-font-weight: bold;
+    -fx-border-width: 0.2;
+    -fx-border-color: black
+}
+

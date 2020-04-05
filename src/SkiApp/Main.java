@@ -15,7 +15,6 @@ import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
-import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
@@ -25,8 +24,8 @@ import org.xml.sax.SAXException;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.IOException;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 
@@ -35,9 +34,11 @@ public class Main extends Application {
     @Override
     public void start(Stage primaryStage) {
         Group root = new Group();
-        Scene scene = new Scene(root, 1000, 850, Color.WHITE);
+        Scene scene = new Scene(root, 1050, 850, Color.WHITE);
         scene.getStylesheets().add("");
         scene.getStylesheets().set(0, "/styles.css");
+        primaryStage.setMinWidth(770);
+        primaryStage.setMinHeight(480);
         Layout layout = new Layout(primaryStage);
         primaryStage.getIcons().add(new Image(getClass().getResourceAsStream("/skiIcon.png") ));
         primaryStage.setScene(scene);
@@ -62,6 +63,7 @@ class Layout {
     private StackPane mapViewPane = new StackPane();
     private HBox displayStatsPane = new HBox();
     private LeafletMapView mapView = new LeafletMapView();
+    private HBox dateBox = new HBox();
     private GridPane preciseData = new GridPane();
 
     private ObservableList<OneDayDataWithFrame> oneDayDataList = FXCollections.observableArrayList();
@@ -70,6 +72,7 @@ class Layout {
     private MyChart chartSpeed;
     private ComboBox<String> chartsType;
     private int currentFrameId = -1;
+    private Boolean isFullScreen = false;
 
     Layout(Stage primaryStage) {
         fileChooser(primaryStage);
@@ -80,18 +83,27 @@ class Layout {
 
 
     void setupAfterWindowShown(Stage primaryStage){
-        scrollPane.setPrefWidth(217);
-        mapViewPane.setMaxWidth(primaryStage.getScene().getWidth()-scrollPane.getPrefWidth());
-        displayStatsPane.setMaxWidth(primaryStage.getScene().getWidth()-scrollPane.getPrefWidth());
+        scrollPane.setMinWidth(217);
+        mapViewPane.setMaxWidth(primaryStage.getScene().getWidth()-scrollPane.getMinWidth());
         mapViewPane.setMaxHeight(primaryStage.getScene().getHeight()-displayStatsPane.getHeight()-fileChooserHBox.getHeight());
+        displayStatsPane.setMaxWidth(primaryStage.getScene().getWidth()-scrollPane.getPrefWidth());
 
-        primaryStage.fullScreenProperty().addListener(observable -> primaryStage.getWidth());
+        primaryStage.maximizedProperty().addListener((observableValue, aBoolean, isFullScreen) -> {
+//            System.out.println("isFullScreen: " + isFullScreen);
+           this.isFullScreen = isFullScreen;
+        });
 
-        primaryStage.getScene().heightProperty().addListener((obs, sceneHeightObs, newVal) -> {
-            double sceneHeight = sceneHeightObs.doubleValue();
-            System.out.println(sceneHeight);
+        primaryStage.heightProperty().addListener((obs, sceneHeightObs, newVal) -> {
+            double sceneHeight;
+            if(isFullScreen) {
+                sceneHeight = 1020;
+            } else {
+                sceneHeight = sceneHeightObs.doubleValue()-37;
+            }
             scrollPane.setMaxHeight(sceneHeight-fileChooserHBox.getHeight());
+            scrollPane.setMinHeight(sceneHeight-fileChooserHBox.getHeight());
             scrollPane.setPrefHeight(sceneHeight-fileChooserHBox.getHeight());
+            mapViewPane.setMinHeight(sceneHeight-displayStatsPane.getHeight()-fileChooserHBox.getHeight());
             mapViewPane.setMaxHeight(sceneHeight-displayStatsPane.getHeight()-fileChooserHBox.getHeight());
             mapViewPane.setPrefHeight(sceneHeight-displayStatsPane.getHeight()-fileChooserHBox.getHeight());
             if(dateColumnVBox.getHeight() > sceneHeight-fileChooserHBox.getHeight()){
@@ -103,11 +115,9 @@ class Layout {
 
         primaryStage.getScene().widthProperty().addListener((obs, oldVal, newVal) -> {
             mapViewPane.setMaxWidth(primaryStage.getScene().getWidth()-scrollPane.getWidth());
-            displayStatsPane.setMaxWidth(primaryStage.getScene().getWidth()-scrollPane.getPrefWidth());
+            displayStatsPane.setMaxWidth(primaryStage.getScene().getWidth()-scrollPane.getWidth());
         });
 
-
-        insertContentToScrollPane(oneDayDataList);
     }
 
 
@@ -136,6 +146,7 @@ class Layout {
 //        //button
         Button chooseFileButton = new Button("Select file...");
         chooseFileButton.setOnAction(e -> fileWasChosen(primaryStage, chosenFileLabel));
+        scrollPane.setContent(dateColumnVBox);
 
         fileChooserHBox.getChildren().addAll(chooseFileButton, chosenFileLabel);
     }
@@ -222,16 +233,11 @@ class Layout {
     }
 
     private void center() {
+        displayStatsPane.setMaxHeight(400);
         displayStatsPane.setPrefHeight(400);
 
 
         // display data
-        preciseData.setMinWidth(300);
-        preciseData.setMinHeight(300);
-        preciseData.getStyleClass().add("mainLeftBackground");
-        preciseData.getStyleClass().add("borderLine");
-        preciseData.setStyle("-fx-border-style: hidden solid solid hidden;");
-
         final Label date = new Label("Date:");
         final Label time = new Label("Total time:");
         final Label distance = new Label("Total distance:");
@@ -245,14 +251,14 @@ class Layout {
                 distDownValue = new Label(), distUpValue = new Label(), maxSpdValue = new Label(),
                 avgSpdValue = new Label(), maxAltValue = new Label(), minAltValue = new Label();
 
-        List<Label> unitLabels = new ArrayList<>(List.of(new Label(), new Label(), new Label("[km]"), new Label("[km]"),
+        List<Label> unitLabels = new ArrayList<>(List.of(new Label("[h]"), new Label("[km]"), new Label("[km]"),
                 new Label("[km]"), new Label("[km/h]"), new Label("[km/h]"), new Label("[m]"), new Label("[m]")));
 
-        List<Label> finalLabels = new ArrayList<>(List.of(date, time, distance, distanceDown, distanceUp,
+        List<Label> finalLabels = new ArrayList<>(List.of(time, distance, distanceDown, distanceUp,
                 maxSpeed, avgSpeed, maxAltitude, minAltitude));
 
-        List<Label> valueLabels = new ArrayList<>(List.of(dateValue, timeValue, distanceValue, distDownValue,
-                                                        distUpValue, maxSpdValue, avgSpdValue, maxAltValue, minAltValue));
+        List<Label> valueLabels = new ArrayList<>(List.of(timeValue, distanceValue, distDownValue, distUpValue,
+                                                          maxSpdValue, avgSpdValue, maxAltValue, minAltValue));
 
         List<Label> allLabels = new ArrayList<>(finalLabels);
         allLabels.addAll(valueLabels);
@@ -261,28 +267,51 @@ class Layout {
         for (Label label : allLabels) {
             if (allLabels.indexOf(label) < allLabels.size()/3) {
                 label.setPrefWidth(130);
+                label.setMinWidth(130);
             } else if(allLabels.indexOf(label) < allLabels.size()*2/3){
-                label.setPrefWidth(100);
+                label.setMinWidth(80);
+                label.setPrefWidth(80);
             } else {
-                label.setPrefWidth(70);
+                label.setMinWidth(65);
+                label.setPrefWidth(65);
             }
             label.setAlignment(Pos.CENTER);
             label.setPadding(new Insets(4, 5, 4, 5));
-            label.setStyle("-fx-background-color: aliceblue ; -fx-font-size: 15; -fx-text-fill: black;" +
-                           " -fx-font-weight: bold; -fx-border-width: 0.2; -fx-border-color: black");
+            label.getStyleClass().add("viewPreciseData");
         }
-        preciseData.setGridLinesVisible(false);
-        preciseData.setPadding(new Insets(8, 20, 8, 20));
+
+        // data
         for (int i = 0; i < finalLabels.size(); i++) {
             preciseData.add(finalLabels.get(i), 0, i);
             preciseData.add(valueLabels.get(i), 1, i);
             preciseData.add(unitLabels.get(i), 2, i);
         }
 
+        // date
+        date.setMinWidth(130);
+        dateValue.setMinWidth(145);
+        dateValue.setPrefWidth(145);
+        dateBox.getChildren().addAll(date, dateValue);
+        for (int i = 0; i < dateBox.getChildren().size(); i++) {
+            Label label = (Label) dateBox.getChildren().get(i);
+            label.setAlignment(Pos.CENTER);
+            label.setPadding(new Insets(0, 5, 0, 5));
+            label.getStyleClass().add("viewPreciseData");
+            label.setStyle("-fx-font-size: 20");
+        }
+
+        VBox preciseDataAndDate = new VBox(dateBox, preciseData);
+        preciseDataAndDate.getStyleClass().add("mainLeftBackground");
+        preciseDataAndDate.getStyleClass().add("borderLine");
+        preciseDataAndDate.setStyle("-fx-border-style: hidden solid solid hidden;");
+        preciseDataAndDate.setPadding(new Insets(20, 20, 20, 20));
+
+
+
         // charts controls
         GridPane chartsControl = new GridPane();
-        chartsControl.setMinHeight(100);
-        chartsControl.setPadding(new Insets(20, 30, 27 ,30));
+        chartsControl.setPrefHeight(80);
+        chartsControl.setPadding(new Insets(10, 30, 10,30));
         chartsControl.setHgap(30);
         chartsControl.setVgap(4);
         chartsControl.getStyleClass().add("borderLine");
@@ -317,7 +346,7 @@ class Layout {
         chartsControl.add(chartsType, 1, 1);
 
 
-        VBox preciseAndControl = new VBox(preciseData, chartsControl);
+        VBox preciseAndControl = new VBox(preciseDataAndDate, chartsControl);
 
         // charts
         chartAlt = new MyChart(new NumberAxis(), new NumberAxis());
@@ -342,17 +371,17 @@ class Layout {
     }
 
     private void insertDataForDisplay(OneDayDataWithFrame frame) {
-//        List<String> values = new ArrayList<>(List.of(frame.getDate().toString(), frame.getTotalTime().getHour() + "h " + frame.getTotalTime().getMinute() + "m",
-//                round(frame.getTotalDistance())+" [km]", round(frame.getDistDown())+" [km]", round(frame.getDistUp())+" [km]", Math.round(frame.getMaxSpeed())+" [km/h]",
-//                Math.round(frame.getAvgSpeed())+" [km/h]", Math.round(frame.getMaxAlt())+" [m]", Math.round(frame.getMinAlt())+" [m]"));
-        List<String> values = new ArrayList<>(List.of(frame.getDate().toString(), frame.getTotalTime().getHour() + "h " + frame.getTotalTime().getMinute() + "m",
+        List<String> values = new ArrayList<>(List.of(frame.getTotalTime().getHour() + ":" + frame.getTotalTime().getMinute(),
                 round(frame.getTotalDistance())+"", round(frame.getDistDown())+"", round(frame.getDistUp())+"", Math.round(frame.getMaxSpeed())+"",
                 Math.round(frame.getAvgSpeed())+"", Math.round(frame.getMaxAlt())+"", Math.round(frame.getMinAlt())+""));
-        System.out.println(values.size());
-        for (int i = 1, j = 0; i < (values.size()*3); i+=3, j++) {
+
+        for (int i = 1, j = 0; i < values.size()*3; i+=3, j++) {
             Label labelToChange = (Label) (preciseData.getChildren().get(i));
             labelToChange.setText(values.get(j));
         }
+
+        Label labelToChange = (Label) dateBox.getChildren().get(1);
+        labelToChange.setText(frame.getDate().toString());
 
     }
 
@@ -391,6 +420,7 @@ class Layout {
                 chartAlt.loadData(frame.getTimeArray(), frame.getAltArray());
                 chartSpeed.loadData(frame.getTimeArray(), frame.getSpeedArray());
             }
+            chartAlt.changeColorsOfChart(chartAlt.chart);
     }
 
 
