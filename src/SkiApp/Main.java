@@ -335,6 +335,8 @@ class Layout {
         chartsType.setPrefWidth(105);
         chartsType.setValue("Distance");
         chartsType.setOnAction(actionEvent -> {
+//            chartAlt.animateChart();
+//            chartSpeed.animateChart();
             chartSpeed.setXaxisLabel(chartsType.getValue());
             chartAlt.setXaxisLabel(chartsType.getValue());
             try {
