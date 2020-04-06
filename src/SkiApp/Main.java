@@ -24,7 +24,6 @@ import org.xml.sax.SAXException;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.IOException;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -73,6 +72,7 @@ class Layout {
     private ComboBox<String> chartsType;
     private int currentFrameId = -1;
     private Boolean isFullScreen = false;
+    private ColorPicker colorPicker = new ColorPicker();
 
     Layout(Stage primaryStage) {
         fileChooser(primaryStage);
@@ -191,7 +191,8 @@ class Layout {
 
         insertContentToScrollPane(oneDayDataList);
         chosenFileLabel.setStyle("-fx-border-color: limegreen; -fx-background-color: white; -fx-border-width: 3");
-
+        oneDayDataList.get(0).setImClicked(true);
+        colorFramesAndDisplayData(oneDayDataList);
 
         mapView.addMarker(new LatLong(50.089306, 19.751844), "Zwierzątko", 1);
         mapView.addMarker(new LatLong(50.299849, 21.343366), "Moja ukochana", 1);
@@ -320,9 +321,12 @@ class Layout {
         Label chartsColor = new Label("Charts color:");
         chartsColor.setPrefWidth(105);
         chartsColor.setAlignment(Pos.CENTER);
-        ColorPicker colorPicker = new ColorPicker();
         colorPicker.setPrefWidth(105);
-        colorPicker.setOnAction(actionEvent -> System.out.println(colorPicker.getValue()));
+        colorPicker.setValue(Color.ROYALBLUE);
+        colorPicker.setOnAction(actionEvent -> {
+            chartAlt.changeColorsOfChart(colorPicker.getValue());
+            chartSpeed.changeColorsOfChart(colorPicker.getValue());
+            });
 
         Label chartsTypeLabel = new Label("Charts type:");
         chartsTypeLabel.setPrefWidth(105);
@@ -385,13 +389,6 @@ class Layout {
 
     }
 
-    private double round(double value) {
-        value = value * 100;
-        value = Math.round(value);
-        return value/100;
-    }
-
-
     private void colorFramesAndDisplayData(ObservableList<OneDayDataWithFrame> frameListObs) {
         for (OneDayDataWithFrame frame : frameListObs) {
             if(frame.isNormalColorStyle()){
@@ -413,17 +410,25 @@ class Layout {
 
 
     private void loadDataToCharts(OneDayDataWithFrame frame) {
-            if (chartsType.getValue().equals("Distance")) {
-                chartAlt.loadData(frame.getDistanceArray(), frame.getAltArray());
-                chartSpeed.loadData(frame.getDistanceArray(), frame.getSpeedArray());
-            } else if (chartsType.getValue().equals("Time")) {
-                chartAlt.loadData(frame.getTimeArray(), frame.getAltArray());
-                chartSpeed.loadData(frame.getTimeArray(), frame.getSpeedArray());
-            }
-            chartAlt.changeColorsOfChart(chartAlt.chart);
+        if (chartsType.getValue().equals("Distance")) {
+            chartAlt.loadData(frame.getDistanceArray(), frame.getAltArray());
+            chartSpeed.loadData(frame.getDistanceArray(), frame.getSpeedArray());
+        } else if (chartsType.getValue().equals("Time")) {
+            chartAlt.loadData(frame.getTimeArray(), frame.getAltArray());
+            chartSpeed.loadData(frame.getTimeArray(), frame.getSpeedArray());
+        }
+        chartAlt.changeColorsOfChart(colorPicker.getValue());
+        chartSpeed.changeColorsOfChart(colorPicker.getValue());
     }
 
 
+
+
+    private double round(double value) {
+        value = value * 100;
+        value = Math.round(value);
+        return value/100;
+    }
 
 
 }

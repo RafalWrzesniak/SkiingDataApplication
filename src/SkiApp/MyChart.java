@@ -7,7 +7,9 @@ import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.StackedBarChart;
 import javafx.scene.chart.XYChart;
 import javafx.scene.paint.Color;
+import org.w3c.dom.ls.LSOutput;
 
+import java.beans.EventHandler;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Set;
@@ -27,7 +29,6 @@ class MyChart extends AreaChart{
 
     private void commonSetups() {
 
-        System.out.println(randomColorRgbFormat());
         xAxis.setAutoRanging(true);
         xAxis.setMinorTickVisible(false);
 
@@ -39,6 +40,19 @@ class MyChart extends AreaChart{
         chart = new AreaChart<>(xAxis, yAxis);
         chart.legendVisibleProperty().setValue(false);
         chart.createSymbolsProperty().setValue(false);
+        chart.setCreateSymbols(false);
+
+
+//        XYChart.Series<Number, Number> axisData = new XYChart.Series<>();
+//        XYChart.Data dataPoint = new XYChart.Data<>(10, 20);
+//        axisData.getData().add(dataPoint);
+//        dataPoint = new XYChart.Data<>(5, 10);
+//        axisData.getData().add(dataPoint);
+//        chart.getData().add(axisData);
+//        axisData.getNode().lookup(".chart-series-area-fill").setStyle("-fx-fill: #0000FF25;");
+//        axisData.getNode().lookup(".chart-series-area-line").setStyle("-fx-stroke: #0000FF; -fx-stroke-width: 2");
+
+
     }
 
     void loadData(ObservableList<Double> xData, ObservableList<Double> yData) {
@@ -66,17 +80,21 @@ class MyChart extends AreaChart{
         }
 
         // add to chart
-        AreaChart.Series<Number, Number> axisData = new AreaChart.Series<>();
+        XYChart.Series<Number, Number> axisData = new XYChart.Series<>();
         for(int i = 0; i < xData.size(); i++) {
-            AreaChart.Data dataPoint = new AreaChart.Data<>(xData.get(i), yData.get(i));
-//            Node lineSymbol = dataPoint.getNode().lookup(".default-color0").lookup(".chart-series-area-line");
-//            lineSymbol.setStyle("-fx-stroke: white;");
+            XYChart.Data dataPoint = new XYChart.Data<>(xData.get(i), yData.get(i));
             axisData.getData().add(dataPoint);
         }
-
         chart.getData().add(axisData);
+
     }
 
+    void changeColorsOfChart(Color color) {
+        try {
+            chart.getData().get(0).getNode().lookup(".chart-series-area-fill").setStyle("-fx-fill: #" + color.toString().substring(2, 8) + "35;");
+            chart.getData().get(0).getNode().lookup(".chart-series-area-line").setStyle("-fx-stroke-width: 1.1; -fx-stroke: #" + color.toString().substring(2, 8) + "ff;");
+        } catch (NullPointerException | IndexOutOfBoundsException ignored) {}
+    }
     void setXaxisLabel(String name) {
         this.xAxis.setLabel(String.join(" ", name, name.equals("Distance") ? "[km]" : "[h]"));
     }
@@ -85,51 +103,5 @@ class MyChart extends AreaChart{
         this.yAxis.setLabel(String.join(" ", name, name.equals("Altitude") ? "[m]" : "[kh/h]"));
     }
 
-    public void changeColorsOfChart(AreaChart<Number, Number> chart)
-    {
-//        chart.getData().get(0).getNode().setStyle("-fx-border-style: solid; -fx-stroke: #0000FF; -fx-background-color: #0000FF;");
-//        AreaChart.Series<Number, Number> series = chart.getData().get(0);
-//        String rgb = randomColorRgbFormat();
-//        series.getData().get(0).getNode().setStyle("-fx-stroke: rgb(" + rgb + ");");
 
-//        XYChart.Series<Number,Number> value  //is our serie value.
-        AreaChart.Series<Number, Number> value = chart.getData().get(0);
-        System.out.println(chart.getData().get(0).getData().size());
-
-        for(int i = 0; i<value.getData().size(); i++){
-            // we're looping for each data point, changing the color of line symbol
-            AreaChart.Data dataPoint = value.getData().get(i);
-            Node lineSymbol = dataPoint.getNode().lookup(".default-color0.chart-series-area-fill");
-            lineSymbol.setStyle("-fx-stroke: blue;");
-        }
-// and this is for the color of the line
-        value.getNode().setStyle("-fx-border-style: solid; -fx-stroke: #0000FF; -fx-background-color: #0000FF;");
-
-
-//        for (AreaChart.Data<Number, Number> data : series.getData())
-//        {
-//            data.getNode().setStyle("-fx-stroke: rgb(" + rgb + ");");
-//        }
-//        colors.put(series.getName(), rgb);
-
-//        for (Node n : chart.getChildrenUnmodifiable())
-//        {
-//            if (n instanceof Legend)
-//            {
-//                for (LegendItem items : ((Legend)n).getItems())
-//                {
-//                    String rgb = colors.get(items.getText());
-//                    items.getSymbol().setStyle("-fx-bar-fill: rgb(" + rgb + ");");
-//                }
-//            }
-//        }
-    }
-
-
-    public String randomColorRgbFormat()
-    {
-        Color color = new Color(Math.random(), Math.random(), Math.random(), 0);
-        return String.format("%d, %d, %d, 1.0", (int) (color.getRed() * 255), (int) (color.getGreen() * 255),
-                (int) (color.getBlue() * 255));
-    }
 }
