@@ -325,7 +325,7 @@ class Layout {
         colorPicker.setValue(Color.ROYALBLUE);
         colorPicker.setOnAction(actionEvent -> {
             chartAlt.changeColorsOfChart(colorPicker.getValue());
-            chartSpeed.changeColorsOfChart(colorPicker.getValue());
+//            chartSpeed.changeColorsOfChart(colorPicker.getValue());
             });
 
         Label chartsTypeLabel = new Label("Charts type:");
@@ -335,9 +335,7 @@ class Layout {
         chartsType.setPrefWidth(105);
         chartsType.setValue("Distance");
         chartsType.setOnAction(actionEvent -> {
-//            chartAlt.animateChart();
-//            chartSpeed.animateChart();
-            chartSpeed.setXaxisLabel(chartsType.getValue());
+//            chartSpeed.setXaxisLabel(chartsType.getValue());
             chartAlt.setXaxisLabel(chartsType.getValue());
             try {
                 loadDataToCharts(oneDayDataList.get(currentFrameId));
@@ -358,10 +356,10 @@ class Layout {
         chartAlt = new MyChart(new NumberAxis(), new NumberAxis());
         chartAlt.setYaxisLabel("Altitude");
         chartAlt.setXaxisLabel("Distance");
-        chartSpeed = new MyChart(new NumberAxis(), new NumberAxis());
-        chartSpeed.setYaxisLabel("Speed");
-        chartSpeed.setXaxisLabel("Distance");
-        VBox forCharts = new VBox(chartAlt.chart, chartSpeed.chart);
+//        chartSpeed = new MyChart(new NumberAxis(), new NumberAxis());
+//        chartSpeed.setYaxisLabel("Speed");
+//        chartSpeed.setXaxisLabel("Distance");
+        VBox forCharts = new VBox(chartAlt.chart); //, chartSpeed.chart);
 
         displayStatsPane.getChildren().addAll(preciseAndControl, forCharts);
         viewDataVBox.getChildren().addAll(displayStatsPane, mapViewPane);
@@ -402,7 +400,6 @@ class Layout {
             if(frame.isImClicked()) {
                 frame.getFrameStats().getStyleClass().set(0, "frameClicked");
                 frame.setImClicked(false);
-//                frame.printSingleDayStats();
                 loadDataToCharts(frame);
                 currentFrameId = frameListObs.indexOf(frame);
                 insertDataForDisplay(frame);
@@ -413,14 +410,11 @@ class Layout {
 
     private void loadDataToCharts(OneDayDataWithFrame frame) {
         if (chartsType.getValue().equals("Distance")) {
-            chartAlt.loadData(frame.getDistanceArray(), frame.getAltArray());
-            chartSpeed.loadData(frame.getDistanceArray(), frame.getSpeedArray());
+            chartAlt.loadData(frame.getDistanceArray(), frame.getAltArray(), colorPicker.getValue());
         } else if (chartsType.getValue().equals("Time")) {
-            chartAlt.loadData(frame.getTimeArray(), frame.getAltArray());
-            chartSpeed.loadData(frame.getTimeArray(), frame.getSpeedArray());
+            chartAlt.loadData(frame.getLongTimeArray(), frame.getLongAltArray(), colorPicker.getValue());
         }
-        chartAlt.changeColorsOfChart(colorPicker.getValue());
-        chartSpeed.changeColorsOfChart(colorPicker.getValue());
+        chartAlt.chart.getData().get(0).setName(frame.getDate().toString());
     }
 
 

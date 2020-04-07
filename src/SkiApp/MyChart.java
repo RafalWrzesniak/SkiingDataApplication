@@ -1,17 +1,18 @@
 package SkiApp;
 
-import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
+import javafx.scene.Node;
 import javafx.scene.chart.AreaChart;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
+import javafx.scene.control.Label;
 import javafx.scene.paint.Color;
 import javafx.util.Duration;
-import org.w3c.dom.ls.LSOutput;
 
+import java.util.Set;
 
 class MyChart extends AreaChart{
 
@@ -37,20 +38,13 @@ class MyChart extends AreaChart{
         yAxis.setTickUnit(10);
 
         chart = new AreaChart<>(xAxis, yAxis);
-        chart.legendVisibleProperty().setValue(false);
+        chart.legendVisibleProperty().setValue(true);
         chart.createSymbolsProperty().setValue(false);
         chart.setCreateSymbols(false);
 
-
-
-//        chart.getData().add(axisData);
-//        axisData.getNode().lookup(".chart-series-area-fill").setStyle("-fx-fill: #0000FF25;");
-//        axisData.getNode().lookup(".chart-series-area-line").setStyle("-fx-stroke: #0000FF; -fx-stroke-width: 2");
-
-
     }
 
-    void loadData(ObservableList<Double> xData, ObservableList<Double> yData) {
+    void loadData(ObservableList<Double> xData, ObservableList<Double> yData, Color color) {
 
         // clear previous charts
         chart.getData().clear();
@@ -75,12 +69,42 @@ class MyChart extends AreaChart{
         // add to chart
         XYChart.Series<Number, Number> axisData = new XYChart.Series<>();
         for(int i = 0; i < xData.size(); i++) {
-            XYChart.Data dataPoint = new XYChart.Data<>(xData.get(i), yData.get(i));
-            axisData.getData().add(dataPoint);
+//        for(int i = 0; i < 500; i++) {
+            axisData.getData().add(new XYChart.Data<>(xData.get(i), yData.get(i)));
         }
-        animateChart(axisData, yMax, yMin);
-//        chart.getData().add(axisData);
 
+        // set x range
+        xAxis.setAutoRanging(false);
+        int lastX = axisData.getData().get(axisData.getData().size()-1).getXValue().intValue();
+        if(lastX > 20) {
+            xAxis.setTickUnit(5);
+            lastX += 5;
+            for (int i = 0; i < 5; i++) {
+                if (lastX % 5 == 0) {
+                    xAxis.setUpperBound(lastX);
+                    break;
+                } else {
+                    lastX -= 1;
+                }
+            }
+        } else {
+            xAxis.setTickUnit(1);
+            xAxis.setUpperBound(lastX+1);
+        }
+
+        // load / animate data
+        if(lastX > 20) {
+            animateChart(axisData, yMin, color);
+        } else {
+            chart.getData().clear();
+            chart.getData().add(axisData);
+            changeColorsOfChart(color);
+            chart.getData().clear();
+            chart.getData().add(axisData);
+            changeColorsOfChart(color);
+
+
+        }
     }
 
     double calcMaxY(ObservableList<Double> yData) {
@@ -104,6 +128,11 @@ class MyChart extends AreaChart{
         try {
             chart.getData().get(0).getNode().lookup(".chart-series-area-fill").setStyle("-fx-fill: #" + color.toString().substring(2, 8) + "35;");
             chart.getData().get(0).getNode().lookup(".chart-series-area-line").setStyle("-fx-stroke-width: 1.1; -fx-stroke: #" + color.toString().substring(2, 8) + "ff;");
+//            chart.getData().get(0).getNode().lookup(".chart-legend-item-symbol").setStyle("-fx-background-color: #" + color.toString().substring(2, 8) + "ff;");
+            Label tempLabel = (Label) chart.lookup("Label.chart-legend-item");
+            tempLabel.getGraphic().setStyle("-fx-background-color: #" + color.toString().substring(2, 8) + "ff;");
+
+
         } catch (NullPointerException | IndexOutOfBoundsException ignored) {}
     }
     void setXaxisLabel(String name) {
@@ -114,68 +143,71 @@ class MyChart extends AreaChart{
         this.yAxis.setLabel(String.join(" ", name, name.equals("Altitude") ? "[m]" : "[kh/h]"));
     }
 
-    void animateChart(XYChart.Series<Number, Number> axisData, double yMax, double yMin) {
-//        XYChart.Series<Number, Number> axisData = new XYChart.Series<>();
-//        axisData.getData().add(new XYChart.Data<>(0, 65));
-//        axisData.getData().add(new XYChart.Data<>(1, 80));
-//        axisData.getData().add(new XYChart.Data<>(2, 70));
-//        axisData.getData().add(new XYChart.Data<>(3, 76));
-//        axisData.getData().add(new XYChart.Data<>(4, 55));
-//        axisData.getData().add(new XYChart.Data<>(5, 91));
-//        axisData.getData().add(new XYChart.Data<>(6, 80));
-//        axisData.getData().add(new XYChart.Data<>(7, 66));
-//        axisData.getData().add(new XYChart.Data<>(8, 74));
-//        axisData.getData().add(new XYChart.Data<>(9, 69));
-//        axisData.getData().add(new XYChart.Data<>(9.83, 94));
-
-        xAxis.setAutoRanging(false);
-        xAxis.setUpperBound(axisData.getData().get(axisData.getData().size()-1).getXValue().intValue()*1.1);
+    void animateChart(XYChart.Series<Number, Number> axisData, double yMin, Color color) {
 
         // prepare start data
-//        double size = axisData.getData().size();
-        double size = 200;
+        double size = 15;
         XYChart.Series<Number, Number> newAxisData = new XYChart.Series<>();
         for(int i = 0; i < axisData.getData().size(); i++) {
-            newAxisData.getData().add(new XYChart.Data<>(axisData.getData().get(i).getXValue().doubleValue()/size,Math.random()*10));
+//            if(i%10 == 0) {
+                newAxisData.getData().add(new XYChart.Data<>(axisData.getData().get(i).getXValue().doubleValue() / size, yMin + Math.random() * (yMin + 20) / 5));
+//            } else {
+//                newAxisData.getData().add(new XYChart.Data<>(newAxisData.getData().get(i-1).getXValue(), newAxisData.getData().get(i-1).getYValue()));
+//            }
         }
         chart.getData().add(newAxisData);
+        changeColorsOfChart(color);
+        XYChart.Series<Number, Number> newAxisDataCopy = new XYChart.Series<>();
+        newAxisDataCopy.getData().addAll(newAxisData.getData());
 
         // move charts right
         Timeline moveXdataIntoChart = new Timeline();
-        moveXdataIntoChart.getKeyFrames().add(new KeyFrame(Duration.millis(5), (ActionEvent actionEvent) -> {
+        moveXdataIntoChart.getKeyFrames().add(new KeyFrame(Duration.millis(20), (ActionEvent actionEvent) -> {
             for(int i = 0; i < axisData.getData().size(); i++) {
                 Number curx = newAxisData.getData().get(i).getXValue();
                 if(curx.doubleValue() < axisData.getData().get(i).getXValue().doubleValue()) {
                     newAxisData.getData().get(i).setXValue(curx.doubleValue() + (axisData.getData().get(i).getXValue().doubleValue() / size));
                 }
             }
+            chart.getData().clear();
+            chart.getData().add(newAxisData);
+            changeColorsOfChart(color);
         }));
 
         // move charts up
         Timeline moveYdataIntoChart = new Timeline();
-        moveYdataIntoChart.getKeyFrames().add(new KeyFrame(Duration.millis(5), (ActionEvent actionEvent) -> {
+        moveYdataIntoChart.getKeyFrames().add(new KeyFrame(Duration.millis(30), (ActionEvent actionEvent) -> {
             for(int i = 0; i < axisData.getData().size(); i++) {
                 Number cury = newAxisData.getData().get(i).getYValue();
                 Number tary = axisData.getData().get(i).getYValue();
-                System.out.println(cury.toString() + ", " + tary.toString());
-
                 if(cury.doubleValue() < tary.doubleValue()) {
-                    newAxisData.getData().get(i).setYValue(cury.doubleValue() + 10);
-                } else if (i==axisData.getData().size()-1){
-                    moveYdataIntoChart.stop();
-                    break;
+                    newAxisData.getData().get(i).setYValue(cury.doubleValue() + (axisData.getData().get(i).getYValue().doubleValue() / (size)));
+                } else if(cury.doubleValue() != axisData.getData().get(i).getYValue().doubleValue()){
+                    newAxisData.getData().get(i).setYValue(axisData.getData().get(i).getYValue().doubleValue());
+
                 }
             }
+            chart.getData().clear();
+            chart.getData().add(newAxisData);
+            changeColorsOfChart(color);
         }));
 
-        moveYdataIntoChart.setCycleCount((int) yMax);
-        moveXdataIntoChart.setOnFinished(actionEvent -> xAxis.setAutoRanging(true));
+        moveYdataIntoChart.setCycleCount((int) size);
+        moveYdataIntoChart.setOnFinished(actionEvent -> {
+            for(int i = 0; i < axisData.getData().size(); i++) {
+                newAxisData.getData().get(i).setXValue(axisData.getData().get(i).getXValue());
+                newAxisData.getData().get(i).setYValue(axisData.getData().get(i).getYValue());
+            }
+            chart.getData().clear();
+            chart.getData().add(newAxisData);
+            changeColorsOfChart(color);
+        });
 
         moveXdataIntoChart.setCycleCount((int) size);
-//        moveXdataIntoChart.setOnFinished((actionEvent -> moveYdataIntoChart.play()));
+        moveXdataIntoChart.setOnFinished((actionEvent -> moveYdataIntoChart.play()));
         moveXdataIntoChart.play();
-
     }
+
 
 
 }
