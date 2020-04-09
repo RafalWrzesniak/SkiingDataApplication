@@ -50,7 +50,27 @@ public class Main extends Application {
     public static void main(String[] args) {
         launch(args);
     }
+
+//    public static void main(String[] args) {
+//        try {
+////            GPXparser gpXparser = new GPXparser(new File("E:\\xInne\\SkiTracker-export-2020-03-16-10-55-45.gpx"));
+//            GPXparser gpXparser = new GPXparser(new File("E:\\xInne\\SkiTracker-export.gpx"));
+//            ObservableList<TrackPoint> allTrackedPoints = gpXparser.parseXMLtoTrackPointList();
+//            ObservableList<ObservableList<TrackPoint>> dayList = SingleDayStats.divideAllPointsToDays(allTrackedPoints);
+//            ObservableList<OneDayDataWithFrame> oneDayDataList = FXCollections.observableArrayList();
+//            for (int i = 0; i < dayList.size(); i++) {
+//                oneDayDataList.add(new OneDayDataWithFrame(dayList.get(i), true));
+//            }
+//
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//    }
+
+
 }
+
+
 
 class Layout {
 
@@ -199,7 +219,6 @@ class Layout {
     }
 
     private ObservableList<File> chooseFileDialog(Stage primaryStage) {
-
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Open your GPX file");
         fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("GPX Files", "*.gpx"));
@@ -333,10 +352,13 @@ class Layout {
         chartsTypeLabel.setAlignment(Pos.CENTER);
         chartsType = new ComboBox<>(FXCollections.observableArrayList("Distance", "Time"));
         chartsType.setPrefWidth(105);
+//        chartsType.setValue("Distance");
         chartsType.setValue("Distance");
+
         chartsType.setOnAction(actionEvent -> {
 //            chartSpeed.setXaxisLabel(chartsType.getValue());
             chartAlt.setXaxisLabel(chartsType.getValue());
+            chartAlt.setTitle("Chart of altitude versus " + chartsType.getValue().toLowerCase());
             try {
                 loadDataToCharts(oneDayDataList.get(currentFrameId));
             } catch (IndexOutOfBoundsException e) {
@@ -356,6 +378,7 @@ class Layout {
         chartAlt = new MyChart(new NumberAxis(), new NumberAxis());
         chartAlt.setYaxisLabel("Altitude");
         chartAlt.setXaxisLabel("Distance");
+        chartAlt.chart.setTitle("Chart of altitude versus distance");
 //        chartSpeed = new MyChart(new NumberAxis(), new NumberAxis());
 //        chartSpeed.setYaxisLabel("Speed");
 //        chartSpeed.setXaxisLabel("Distance");
@@ -412,7 +435,7 @@ class Layout {
         if (chartsType.getValue().equals("Distance")) {
             chartAlt.loadData(frame.getDistanceArray(), frame.getAltArray(), colorPicker.getValue());
         } else if (chartsType.getValue().equals("Time")) {
-            chartAlt.loadData(frame.getLongTimeArray(), frame.getLongAltArray(), colorPicker.getValue());
+            chartAlt.loadData(frame.getTimeArray(), frame.getShortAltByTimeArray(), colorPicker.getValue());
         }
         chartAlt.chart.getData().get(0).setName(frame.getDate().toString());
     }
@@ -428,3 +451,4 @@ class Layout {
 
 
 }
+

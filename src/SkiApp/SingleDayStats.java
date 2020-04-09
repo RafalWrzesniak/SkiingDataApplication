@@ -9,12 +9,9 @@ import java.time.LocalTime;
 class SingleDayStats {
 
     private ObservableList<Double> shortDistanceArray = FXCollections.observableArrayList();
-    private ObservableList<Double> shortAltArray = FXCollections.observableArrayList();
+    private ObservableList<Double> shortAltByDistArray = FXCollections.observableArrayList();
     private ObservableList<Double> shortTimeArray = FXCollections.observableArrayList();
-
-    private ObservableList<Double> longAltArray = FXCollections.observableArrayList();
-    private ObservableList<Double> longTimeArray = FXCollections.observableArrayList();
-
+    private ObservableList<Double> shortAltByTimeArray = FXCollections.observableArrayList();
 
     private double totalDistance, distDown, distUp, maxSpeed, maxAlt, minAlt, avgSpeed;
     private LocalTime totalTime;
@@ -22,9 +19,10 @@ class SingleDayStats {
 
 
     SingleDayStats(ObservableList<TrackPoint> allTrackedPoints) {
+        this.date = allTrackedPoints.get(0).getDate();
         createArrays(allTrackedPoints);
         calcTotalTime(allTrackedPoints);
-        this.date = allTrackedPoints.get(0).getDate();
+//        makeNiceTimeCharts(allTrackedPoints);
     }
 
     void printSingleDayStats() {
@@ -36,14 +34,22 @@ class SingleDayStats {
         System.out.println();
     }
 
+
     private void createArrays(ObservableList<TrackPoint> allTrackedPoints) {
         boolean isGoingDown = false;
         double alt, dist, time, absTime, speed;
         double absDist = 0, distDown = 0, distUp = 0, maxAlt = 0, minAlt = 10000, maxSpeed = 0, sample = 0, sumSpeed = 0;
         ObservableList<Double> shortDistanceArray = FXCollections.observableArrayList();
-        ObservableList<Double> shortAltArray = FXCollections.observableArrayList();
-        ObservableList<Double> shortTimeArray = FXCollections.observableArrayList();
+        ObservableList<Double> shortAltbyDistArray = FXCollections.observableArrayList();
+
         ObservableList<TrackPoint> shortTrackedPoints = FXCollections.observableArrayList();
+
+        ObservableList<Double> shortTimeArray = FXCollections.observableArrayList();
+        ObservableList<Double> shortAltByTimeArray = FXCollections.observableArrayList();
+
+        shortDistanceArray.add((double) 0);
+        shortAltbyDistArray.add(allTrackedPoints.get(0).getAlt());
+        shortTrackedPoints.add(allTrackedPoints.get(0));
 
         for (int i = 1; i < allTrackedPoints.size(); i++) {
             dist = distanceBetweenPoints(allTrackedPoints.get(i), allTrackedPoints.get(i-1));
@@ -53,39 +59,41 @@ class SingleDayStats {
             absTime = timeBetweenPoints(allTrackedPoints.get(i), allTrackedPoints.get(0));
             absDist += distanceBetweenPoints(allTrackedPoints.get(i), allTrackedPoints.get(i-1));
 
-            if (i == 1) {
-                shortDistanceArray.add((double) 0);
-                shortAltArray.add(allTrackedPoints.get(0).getAlt());
-                shortTrackedPoints.add(allTrackedPoints.get(0));
-            }
-            longTimeArray.add(absTime / 3600);
-            longAltArray.add(alt);
-
+            // get time, distance and alt arrays
             if(alt < allTrackedPoints.get(i-1).getAlt()) {
                 distDown += dist;
-                if(!isGoingDown && distanceBetweenPoints(allTrackedPoints.get(i), shortTrackedPoints.get(shortTrackedPoints.size()-1)) > 80) {
-                    shortTimeArray.add(absTime / 3600);
+                if(!isGoingDown && distanceBetweenPoints(allTrackedPoints.get(i), shortTrackedPoints.get(shortTrackedPoints.size()-1)) > 20) {
                     shortDistanceArray.add(absDist / 1000);
-                    shortAltArray.add(alt);
+                    shortAltbyDistArray.add(alt);
                     shortTrackedPoints.add(allTrackedPoints.get(i));
+                    shortTimeArray.add(absTime / 3600);
+                    shortAltByTimeArray.add(alt);
                 }
                 isGoingDown = true;
             } else {
                 distUp += dist;
-                if(isGoingDown && distanceBetweenPoints(allTrackedPoints.get(i), shortTrackedPoints.get(shortTrackedPoints.size()-1)) > 80) {
-                    shortTimeArray.add(absTime / 3600);
+                if(isGoingDown && distanceBetweenPoints(allTrackedPoints.get(i), shortTrackedPoints.get(shortTrackedPoints.size()-1)) > 20) {
                     shortDistanceArray.add(absDist / 1000);
-                    shortAltArray.add(alt);
+                    shortAltbyDistArray.add(alt);
                     shortTrackedPoints.add(allTrackedPoints.get(i));
+                    shortTimeArray.add(absTime / 3600);
+                    shortAltByTimeArray.add(alt);
                 }
                 isGoingDown = false;
             }
+            // add points to smooth time chart
+            if(distanceBetweenPoints(allTrackedPoints.get(i), shortTrackedPoints.get(shortTrackedPoints.size()-1)) > 200) {
+                shortTimeArray.add(absTime / 3600);
+                shortAltByTimeArray.add(alt);
+                shortTrackedPoints.add(allTrackedPoints.get(i));
+            }
+            // calc max and min alt
             if(alt > maxAlt) {
                 maxAlt = alt;
             } else if(alt < minAlt){
                 minAlt = alt;
             }
-
+            // calc max and avg speed
             if(speed > maxSpeed && speed < 80) maxSpeed = speed;
             if(speed > 2) {
                 sumSpeed += speed;
@@ -94,9 +102,11 @@ class SingleDayStats {
 
         }
 
-        this.shortDistanceArray = shortDistanceArray;
         this.shortTimeArray = shortTimeArray;
-        this.shortAltArray = shortAltArray;
+        this.shortAltByTimeArray = shortAltByTimeArray;
+
+        this.shortDistanceArray = shortDistanceArray;
+        this.shortAltByDistArray = shortAltbyDistArray;
 
         this.avgSpeed = sumSpeed/sample;
         this.maxSpeed = maxSpeed;
@@ -167,18 +177,6 @@ class SingleDayStats {
         return totalTime;
     }
 
-    ObservableList<Double> getAltArray() {
-        return shortAltArray;
-    }
-
-    ObservableList<Double> getDistanceArray() {
-        return shortDistanceArray;
-    }
-
-    ObservableList<Double> getTimeArray() {
-        return shortTimeArray;
-    }
-
     double getDistDown() {
         return distDown;
     }
@@ -207,11 +205,21 @@ class SingleDayStats {
         return avgSpeed;
     }
 
-    public ObservableList<Double> getLongAltArray() {
-        return longAltArray;
+
+    ObservableList<Double> getShortAltByTimeArray() {
+        return shortAltByTimeArray;
     }
 
-    public ObservableList<Double> getLongTimeArray() {
-        return longTimeArray;
+    ObservableList<Double> getTimeArray() {
+        return shortTimeArray;
+    }
+
+
+    ObservableList<Double> getAltArray() {
+        return shortAltByDistArray;
+    }
+
+    ObservableList<Double> getDistanceArray() {
+        return shortDistanceArray;
     }
 }

@@ -29,13 +29,15 @@ class MyChart extends AreaChart{
 
     private void commonSetups() {
 
-        xAxis.setAutoRanging(true);
+        xAxis.setAutoRanging(false);
         xAxis.setMinorTickVisible(false);
+        xAxis.setUpperBound(100);
+        xAxis.setTickUnit(10);
 
         yAxis.setAutoRanging(false);
         yAxis.setMinorTickVisible(false);
-        yAxis.setUpperBound(100);
-        yAxis.setTickUnit(10);
+        yAxis.setUpperBound(3000);
+        yAxis.setTickUnit(500);
 
         chart = new AreaChart<>(xAxis, yAxis);
         chart.legendVisibleProperty().setValue(true);
@@ -92,19 +94,9 @@ class MyChart extends AreaChart{
             xAxis.setUpperBound(lastX+1);
         }
 
-        // load / animate data
-        if(lastX > 20) {
-            animateChart(axisData, yMin, color);
-        } else {
-            chart.getData().clear();
-            chart.getData().add(axisData);
-            changeColorsOfChart(color);
-            chart.getData().clear();
-            chart.getData().add(axisData);
-            changeColorsOfChart(color);
+        // animate data
+        animateChart(axisData, yMin, color);
 
-
-        }
     }
 
     double calcMaxY(ObservableList<Double> yData) {
@@ -128,13 +120,12 @@ class MyChart extends AreaChart{
         try {
             chart.getData().get(0).getNode().lookup(".chart-series-area-fill").setStyle("-fx-fill: #" + color.toString().substring(2, 8) + "35;");
             chart.getData().get(0).getNode().lookup(".chart-series-area-line").setStyle("-fx-stroke-width: 1.1; -fx-stroke: #" + color.toString().substring(2, 8) + "ff;");
-//            chart.getData().get(0).getNode().lookup(".chart-legend-item-symbol").setStyle("-fx-background-color: #" + color.toString().substring(2, 8) + "ff;");
             Label tempLabel = (Label) chart.lookup("Label.chart-legend-item");
             tempLabel.getGraphic().setStyle("-fx-background-color: #" + color.toString().substring(2, 8) + "ff;");
-
-
         } catch (NullPointerException | IndexOutOfBoundsException ignored) {}
     }
+
+
     void setXaxisLabel(String name) {
         this.xAxis.setLabel(String.join(" ", name, name.equals("Distance") ? "[km]" : "[h]"));
     }
@@ -149,11 +140,7 @@ class MyChart extends AreaChart{
         double size = 15;
         XYChart.Series<Number, Number> newAxisData = new XYChart.Series<>();
         for(int i = 0; i < axisData.getData().size(); i++) {
-//            if(i%10 == 0) {
-                newAxisData.getData().add(new XYChart.Data<>(axisData.getData().get(i).getXValue().doubleValue() / size, yMin + Math.random() * (yMin + 20) / 5));
-//            } else {
-//                newAxisData.getData().add(new XYChart.Data<>(newAxisData.getData().get(i-1).getXValue(), newAxisData.getData().get(i-1).getYValue()));
-//            }
+            newAxisData.getData().add(new XYChart.Data<>(axisData.getData().get(i).getXValue().doubleValue() / size, yMin + Math.random() * (yMin + 20) / 5));
         }
         chart.getData().add(newAxisData);
         changeColorsOfChart(color);
