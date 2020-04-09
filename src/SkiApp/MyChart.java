@@ -4,20 +4,18 @@ import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
-import javafx.scene.Node;
 import javafx.scene.chart.AreaChart;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.Label;
 import javafx.scene.paint.Color;
 import javafx.util.Duration;
-
-import java.util.Set;
-
 class MyChart extends AreaChart{
 
     private NumberAxis xAxis;
     private NumberAxis yAxis;
+    private static double maxXValue = 0;
+    private static double maxYValue = 0;
     AreaChart<Number, Number> chart;
 
     MyChart(NumberAxis xAxis, NumberAxis yAxis) {
@@ -41,15 +39,25 @@ class MyChart extends AreaChart{
 
         chart = new AreaChart<>(xAxis, yAxis);
         chart.legendVisibleProperty().setValue(true);
-        chart.createSymbolsProperty().setValue(false);
+        chart.createSymbolsProperty().setValue(true);
         chart.setCreateSymbols(false);
+        chart.setTitle("Chart of altitude versus distance");
 
+        XYChart.Series<Number, Number> tempChartData = new XYChart.Series<>();
+        tempChartData.getData().add(new XYChart.Data<>(0,0));
+        tempChartData.setName("Chart legend");
+        chart.getData().add(tempChartData);
+        changeColorsOfChart(Color.ROYALBLUE);
     }
 
-    void loadData(ObservableList<Double> xData, ObservableList<Double> yData, Color color) {
+    void loadData(ObservableList<Double> xData, ObservableList<Double> yData, Color color, boolean keepCharts) {
 
         // clear previous charts
-        chart.getData().clear();
+        if(!keepCharts || chart.getData().get(0).getName().equals("Chart legend")) {
+            chart.getData().clear();
+            maxXValue = 0;
+            maxYValue = 0;
+        }
 
         // calc max and min value on Y
         double yMax = calcMaxY(yData);
@@ -63,10 +71,12 @@ class MyChart extends AreaChart{
             yAxis.setTickUnit(500);
         }
         //set bounds depending on max Y value
-        for (int i = 0, j = scale*20; i < scale*20 && j > 0; i+=scale, j-= scale) {
-            if(yMin > i) yAxis.setLowerBound(i);
-            if(yMax < j) yAxis.setUpperBound(j);
+        for (int i = 0, j = scale*20; i < scale*20 && j > 0; i += scale, j -= scale) {
+            if (yMin > i) yAxis.setLowerBound(i);
+            if (yMax < j) yAxis.setUpperBound(j);
         }
+        if(yAxis.getUpperBound() > maxYValue) maxYValue = yAxis.getUpperBound();
+        if(keepCharts) yAxis.setUpperBound(maxYValue);
 
         // add to chart
         XYChart.Series<Number, Number> axisData = new XYChart.Series<>();
@@ -93,9 +103,16 @@ class MyChart extends AreaChart{
             xAxis.setTickUnit(1);
             xAxis.setUpperBound(lastX+1);
         }
+        if(xAxis.getUpperBound() > maxXValue) maxXValue = xAxis.getUpperBound();
+        if(keepCharts) xAxis.setUpperBound(maxXValue);
 
         // animate data
-        animateChart(axisData, yMin, color);
+        if(!keepCharts) {
+            animateChart(axisData, yMin, color);
+        } else {
+            chart.getData().add(axisData);
+        }
+
 
     }
 
@@ -121,7 +138,7 @@ class MyChart extends AreaChart{
             chart.getData().get(0).getNode().lookup(".chart-series-area-fill").setStyle("-fx-fill: #" + color.toString().substring(2, 8) + "35;");
             chart.getData().get(0).getNode().lookup(".chart-series-area-line").setStyle("-fx-stroke-width: 1.1; -fx-stroke: #" + color.toString().substring(2, 8) + "ff;");
             Label tempLabel = (Label) chart.lookup("Label.chart-legend-item");
-            tempLabel.getGraphic().setStyle("-fx-background-color: #" + color.toString().substring(2, 8) + "ff;");
+            tempLabel.getGraphic().setStyle("-fx-background-color: #" + color.toString().substring(2, 8) + "ff, white;");
         } catch (NullPointerException | IndexOutOfBoundsException ignored) {}
     }
 

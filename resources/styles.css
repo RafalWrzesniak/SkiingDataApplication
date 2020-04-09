@@ -50,3 +50,5 @@
     -fx-border-width: 0.2;
     -fx-border-color: black
 }
+
+.default-color0.chart-area-symbol { -fx-background-color: royalblue, white; }

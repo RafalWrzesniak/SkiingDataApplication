@@ -88,11 +88,12 @@ class Layout {
     private ObservableList<OneDayDataWithFrame> oneDayDataList = FXCollections.observableArrayList();
 
     private MyChart chartAlt;
-    private MyChart chartSpeed;
+//    private MyChart chartSpeed;
     private ComboBox<String> chartsType;
     private int currentFrameId = -1;
     private Boolean isFullScreen = false;
     private ColorPicker colorPicker = new ColorPicker();
+    private CheckBox keepChartscheckBox;
 
     Layout(Stage primaryStage) {
         fileChooser(primaryStage);
@@ -358,7 +359,7 @@ class Layout {
         chartsType.setOnAction(actionEvent -> {
 //            chartSpeed.setXaxisLabel(chartsType.getValue());
             chartAlt.setXaxisLabel(chartsType.getValue());
-            chartAlt.setTitle("Chart of altitude versus " + chartsType.getValue().toLowerCase());
+            chartAlt.chart.setTitle("Chart of altitude versus " + chartsType.getValue().toLowerCase());
             try {
                 loadDataToCharts(oneDayDataList.get(currentFrameId));
             } catch (IndexOutOfBoundsException e) {
@@ -366,11 +367,11 @@ class Layout {
             }
         });
 
+
         chartsControl.add(chartsColor,0, 0);
         chartsControl.add(chartsTypeLabel,1, 0);
         chartsControl.add(colorPicker, 0, 1);
         chartsControl.add(chartsType, 1, 1);
-
 
         VBox preciseAndControl = new VBox(preciseDataAndDate, chartsControl);
 
@@ -378,11 +379,23 @@ class Layout {
         chartAlt = new MyChart(new NumberAxis(), new NumberAxis());
         chartAlt.setYaxisLabel("Altitude");
         chartAlt.setXaxisLabel("Distance");
-        chartAlt.chart.setTitle("Chart of altitude versus distance");
 //        chartSpeed = new MyChart(new NumberAxis(), new NumberAxis());
 //        chartSpeed.setYaxisLabel("Speed");
 //        chartSpeed.setXaxisLabel("Distance");
-        VBox forCharts = new VBox(chartAlt.chart); //, chartSpeed.chart);
+        keepChartscheckBox = new CheckBox("Keep charts");
+        keepChartscheckBox.setDisable(true);
+        keepChartscheckBox.selectedProperty().addListener((observableValue, aBoolean, t1) -> {
+            if(!keepChartscheckBox.isSelected()) {
+                chartAlt.chart.getData().clear();
+                insertDataForDisplay(oneDayDataList.get(currentFrameId));
+                loadDataToCharts(oneDayDataList.get(currentFrameId));
+                chartsType.setDisable(false);
+            } else {
+                chartsType.setDisable(true);
+            }
+        });
+        VBox forCharts = new VBox(chartAlt.chart, keepChartscheckBox); //, chartSpeed.chart);
+        forCharts.setPadding(new Insets(10, 0, 23, 0));
 
         displayStatsPane.getChildren().addAll(preciseAndControl, forCharts);
         viewDataVBox.getChildren().addAll(displayStatsPane, mapViewPane);
@@ -432,12 +445,17 @@ class Layout {
 
 
     private void loadDataToCharts(OneDayDataWithFrame frame) {
-        if (chartsType.getValue().equals("Distance")) {
-            chartAlt.loadData(frame.getDistanceArray(), frame.getAltArray(), colorPicker.getValue());
-        } else if (chartsType.getValue().equals("Time")) {
-            chartAlt.loadData(frame.getTimeArray(), frame.getShortAltByTimeArray(), colorPicker.getValue());
+        keepChartscheckBox.setDisable(false);
+        for(int i = 0; i < chartAlt.chart.getData().size(); i++) {
+            double lastx = chartAlt.chart.getData().get(i).getData().get(chartAlt.chart.getData().size()-1).getXValue().doubleValue();
+            if(chartAlt.chart.getData().get(i).getName().equals(frame.getDate().toString())) return;
         }
-        chartAlt.chart.getData().get(0).setName(frame.getDate().toString());
+        if (chartsType.getValue().equals("Distance")) {
+            chartAlt.loadData(frame.getDistanceArray(), frame.getAltArray(), colorPicker.getValue(), keepChartscheckBox.isSelected());
+        } else if (chartsType.getValue().equals("Time")) {
+            chartAlt.loadData(frame.getTimeArray(), frame.getShortAltByTimeArray(), colorPicker.getValue(), keepChartscheckBox.isSelected());
+        }
+        chartAlt.chart.getData().get(chartAlt.chart.getData().size()-1).setName(frame.getDate().toString());
     }
 
 
