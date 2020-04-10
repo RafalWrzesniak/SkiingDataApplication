@@ -62,6 +62,7 @@ public class Main extends Application {
 //                oneDayDataList.add(new OneDayDataWithFrame(dayList.get(i), true));
 //            }
 //
+//
 //        } catch (Exception e) {
 //            e.printStackTrace();
 //        }
@@ -255,31 +256,36 @@ class Layout {
 
     private void center() {
         displayStatsPane.setMaxHeight(400);
+        displayStatsPane.setMinHeight(400);
         displayStatsPane.setPrefHeight(400);
 
 
         // display data
         final Label date = new Label("Date:");
-        final Label time = new Label("Total time:");
+        final Label totalTime = new Label("Total time:");
+        final Label times = new Label("Time down/up/rest:");
         final Label distance = new Label("Total distance:");
-        final Label distanceDown = new Label("Distance down:");
-        final Label distanceUp = new Label("Distance up:");
+        final Label distanceDownUp = new Label("Distance down/up:");
+//        final Label distanceUp = new Label("Distance up:");
         final Label maxSpeed = new Label("Max speed:");
         final Label avgSpeed = new Label("Average speed:");
         final Label maxAltitude = new Label("Max altitude:");
         final Label minAltitude = new Label("Min altitude:");
-        Label dateValue = new Label(), timeValue = new Label(), distanceValue = new Label(),
-                distDownValue = new Label(), distUpValue = new Label(), maxSpdValue = new Label(),
-                avgSpdValue = new Label(), maxAltValue = new Label(), minAltValue = new Label();
+        final Label hills = new Label("Downhill/uphill:");
+        final Label lvlDiff = new Label("Level diff down/up:");
+        Label dateValue = new Label(), timeValue = new Label(), timesValue = new Label(), distanceValue = new Label(),
+                distDownUpValue = new Label(), maxSpdValue = new Label(), avgSpdValue = new Label(),
+                maxAltValue = new Label(), minAltValue = new Label(), hillsValue = new Label(), lvlDiffValue = new Label();
 
-        List<Label> unitLabels = new ArrayList<>(List.of(new Label("[h]"), new Label("[km]"), new Label("[km]"),
-                new Label("[km]"), new Label("[km/h]"), new Label("[km/h]"), new Label("[m]"), new Label("[m]")));
+        List<Label> unitLabels = new ArrayList<>(List.of(new Label("[h]"), new Label("[h]"), new Label("[km]"),
+                new Label("[km]"), new Label("[km/h]"), new Label("[km/h]"), new Label("[m]"),
+                new Label("[m]"), new Label(), new Label("[km]")));
 
-        List<Label> finalLabels = new ArrayList<>(List.of(time, distance, distanceDown, distanceUp,
-                maxSpeed, avgSpeed, maxAltitude, minAltitude));
+        List<Label> finalLabels = new ArrayList<>(List.of(totalTime, times, distance, distanceDownUp,
+                maxSpeed, avgSpeed, maxAltitude, minAltitude, hills, lvlDiff));
 
-        List<Label> valueLabels = new ArrayList<>(List.of(timeValue, distanceValue, distDownValue, distUpValue,
-                                                          maxSpdValue, avgSpdValue, maxAltValue, minAltValue));
+        List<Label> valueLabels = new ArrayList<>(List.of(timeValue, timesValue, distanceValue, distDownUpValue,
+                maxSpdValue, avgSpdValue, maxAltValue, minAltValue, hillsValue, lvlDiffValue));
 
         List<Label> allLabels = new ArrayList<>(finalLabels);
         allLabels.addAll(valueLabels);
@@ -287,21 +293,22 @@ class Layout {
 
         for (Label label : allLabels) {
             if (allLabels.indexOf(label) < allLabels.size()/3) {
-                label.setPrefWidth(130);
-                label.setMinWidth(130);
+                label.setPrefWidth(140);
+                label.setMinWidth(140);
             } else if(allLabels.indexOf(label) < allLabels.size()*2/3){
-                label.setMinWidth(80);
-                label.setPrefWidth(80);
+                label.setMinWidth(100);
+                label.setPrefWidth(100);
             } else {
-                label.setMinWidth(65);
-                label.setPrefWidth(65);
+                label.setMinWidth(55);
+                label.setPrefWidth(55);
             }
             label.setAlignment(Pos.CENTER);
-            label.setPadding(new Insets(4, 5, 4, 5));
+            label.setPadding(new Insets(2, 2, 2, 2));
             label.getStyleClass().add("viewPreciseData");
         }
 
         // data
+//        preciseData.setMaxHeight(300);
         for (int i = 0; i < finalLabels.size(); i++) {
             preciseData.add(finalLabels.get(i), 0, i);
             preciseData.add(valueLabels.get(i), 1, i);
@@ -309,9 +316,9 @@ class Layout {
         }
 
         // date
-        date.setMinWidth(130);
-        dateValue.setMinWidth(145);
-        dateValue.setPrefWidth(145);
+        date.setMinWidth(140);
+        dateValue.setMinWidth(155);
+        dateValue.setPrefWidth(155);
         dateBox.getChildren().addAll(date, dateValue);
         for (int i = 0; i < dateBox.getChildren().size(); i++) {
             Label label = (Label) dateBox.getChildren().get(i);
@@ -322,6 +329,9 @@ class Layout {
         }
 
         VBox preciseDataAndDate = new VBox(dateBox, preciseData);
+        preciseDataAndDate.setMaxHeight(320);
+        preciseDataAndDate.setMinHeight(320);
+        preciseDataAndDate.setPrefHeight(320);
         preciseDataAndDate.getStyleClass().add("mainLeftBackground");
         preciseDataAndDate.getStyleClass().add("borderLine");
         preciseDataAndDate.setStyle("-fx-border-style: hidden solid solid hidden;");
@@ -331,6 +341,8 @@ class Layout {
 
         // charts controls
         GridPane chartsControl = new GridPane();
+        chartsControl.setMaxHeight(80);
+        chartsControl.setMinHeight(80);
         chartsControl.setPrefHeight(80);
         chartsControl.setPadding(new Insets(10, 30, 10,30));
         chartsControl.setHgap(30);
@@ -412,8 +424,10 @@ class Layout {
 
     private void insertDataForDisplay(OneDayDataWithFrame frame) {
         List<String> values = new ArrayList<>(List.of(frame.getTotalTime().getHour() + ":" + frame.getTotalTime().getMinute(),
-                round(frame.getTotalDistance())+"", round(frame.getDistDown())+"", round(frame.getDistUp())+"", Math.round(frame.getMaxSpeed())+"",
-                Math.round(frame.getAvgSpeed())+"", Math.round(frame.getMaxAlt())+"", Math.round(frame.getMinAlt())+""));
+                frame.getTimeDown() + ", " + frame.getTimeUp() + ", " + frame.getTimeRest(), round(frame.getTotalDistance())+"",
+                round(frame.getDistDown()) + ", " + round(frame.getDistUp()), Math.round(frame.getMaxSpeed())+"",
+                Math.round(frame.getAvgSpeed())+"", Math.round(frame.getMaxAlt())+"", Math.round(frame.getMinAlt())+"",
+                frame.getDownhill() + ", " + frame.getUphill(), round(frame.getAltDown()) + ", " + round(frame.getAltUp())));
 
         for (int i = 1, j = 0; i < values.size()*3; i+=3, j++) {
             Label labelToChange = (Label) (preciseData.getChildren().get(i));
@@ -446,22 +460,31 @@ class Layout {
 
     private void loadDataToCharts(OneDayDataWithFrame frame) {
         keepChartscheckBox.setDisable(false);
-        for(int i = 0; i < chartAlt.chart.getData().size(); i++) {
-            double lastx = chartAlt.chart.getData().get(i).getData().get(chartAlt.chart.getData().size()-1).getXValue().doubleValue();
-            if(chartAlt.chart.getData().get(i).getName().equals(frame.getDate().toString())) return;
-        }
+        double lastxDist = frame.getDistanceArray().get(frame.getDistanceArray().size()-1);
+        double lastxTime = frame.getTimeArray().get(frame.getTimeArray().size()-1);
+
         if (chartsType.getValue().equals("Distance")) {
+            for(int i = 0; i < chartAlt.chart.getData().size(); i++) {
+                double lastx = chartAlt.chart.getData().get(i).getData().get(chartAlt.chart.getData().get(i).getData().size()-1).getXValue().doubleValue();
+                if(chartAlt.chart.getData().get(i).getName().equals(frame.getDate().toString()) && lastx == lastxDist) return;
+            }
             chartAlt.loadData(frame.getDistanceArray(), frame.getAltArray(), colorPicker.getValue(), keepChartscheckBox.isSelected());
+
         } else if (chartsType.getValue().equals("Time")) {
+            for(int i = 0; i < chartAlt.chart.getData().size(); i++) {
+                double lastx = chartAlt.chart.getData().get(i).getData().get(chartAlt.chart.getData().get(i).getData().size()-1).getXValue().doubleValue();
+                if(chartAlt.chart.getData().get(i).getName().equals(frame.getDate().toString()) && lastx == lastxTime) return;
+            }
             chartAlt.loadData(frame.getTimeArray(), frame.getShortAltByTimeArray(), colorPicker.getValue(), keepChartscheckBox.isSelected());
         }
+
         chartAlt.chart.getData().get(chartAlt.chart.getData().size()-1).setName(frame.getDate().toString());
     }
 
 
 
 
-    private double round(double value) {
+    static double round(double value) {
         value = value * 100;
         value = Math.round(value);
         return value/100;
