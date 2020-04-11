@@ -15,6 +15,7 @@ import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
 import javafx.stage.FileChooser;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
@@ -95,6 +96,7 @@ class Layout {
     private Boolean isFullScreen = false;
     private ColorPicker colorPicker = new ColorPicker();
     private CheckBox keepChartscheckBox;
+    private StackPane chartStackPane = new StackPane();
 
     Layout(Stage primaryStage) {
         fileChooser(primaryStage);
@@ -387,13 +389,13 @@ class Layout {
 
         VBox preciseAndControl = new VBox(preciseDataAndDate, chartsControl);
 
-        // charts
+        // chart
         chartAlt = new MyChart(new NumberAxis(), new NumberAxis());
-        chartAlt.setYaxisLabel("Altitude");
-        chartAlt.setXaxisLabel("Distance");
-//        chartSpeed = new MyChart(new NumberAxis(), new NumberAxis());
-//        chartSpeed.setYaxisLabel("Speed");
-//        chartSpeed.setXaxisLabel("Distance");
+        chartAlt.chart.setOnMouseMoved(mouseEvent -> chartInteractiveManagement(mouseEvent.getX()));
+        Circle circle = new Circle(0, 0, 5, colorPicker.getValue());
+        chartStackPane.getChildren().addAll(chartAlt.chart, circle);
+
+
         keepChartscheckBox = new CheckBox("Keep charts");
         keepChartscheckBox.setDisable(true);
         keepChartscheckBox.selectedProperty().addListener((observableValue, aBoolean, t1) -> {
@@ -406,7 +408,7 @@ class Layout {
                 chartsType.setDisable(true);
             }
         });
-        VBox forCharts = new VBox(chartAlt.chart, keepChartscheckBox); //, chartSpeed.chart);
+        VBox forCharts = new VBox(chartStackPane, keepChartscheckBox);
         forCharts.setPadding(new Insets(10, 0, 23, 0));
 
         displayStatsPane.getChildren().addAll(preciseAndControl, forCharts);
@@ -420,6 +422,21 @@ class Layout {
         mapView.displayMap(new MapConfig());
 
 
+    }
+
+    private void chartInteractiveManagement(double mouseXPos) {
+        double hoveredX = chartAlt.getHoveredX(mouseXPos);
+        int mouseY = 0;
+        try {
+            int hoveredPointIndex = oneDayDataList.get(currentFrameId).getDistanceArray().indexOf(hoveredX);
+            mouseY = (int) oneDayDataList.get(currentFrameId).getAllUsedPoints().get(hoveredPointIndex).getAlt();
+            System.out.println(chartAlt.getProperYFromMouse(mouseY));
+        } catch(IndexOutOfBoundsException ignored) {}
+
+        if(mouseXPos > 72 && mouseXPos < 72 + chartAlt.chart.getXAxis().getWidth()) {
+            chartStackPane.getChildren().get(1).setTranslateX(mouseXPos - chartStackPane.getWidth() / 2);
+            chartStackPane.getChildren().get(1).setTranslateY((chartStackPane.getHeight() / 2)-88);
+        }
     }
 
     private void insertDataForDisplay(OneDayDataWithFrame frame) {

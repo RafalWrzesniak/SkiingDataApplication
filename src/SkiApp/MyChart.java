@@ -2,14 +2,21 @@ package SkiApp;
 
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
+import javafx.beans.InvalidationListener;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
+import javafx.scene.Node;
 import javafx.scene.chart.AreaChart;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.Label;
+import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.util.Duration;
+
+import java.awt.event.MouseEvent;
+
 class MyChart extends AreaChart{
 
     private NumberAxis xAxis;
@@ -17,6 +24,7 @@ class MyChart extends AreaChart{
     private static double maxXValue = 0;
     private static double maxYValue = 0;
     AreaChart<Number, Number> chart;
+    private int hovers;
 
     MyChart(NumberAxis xAxis, NumberAxis yAxis) {
         super(xAxis, yAxis);
@@ -48,6 +56,9 @@ class MyChart extends AreaChart{
         tempChartData.setName("Chart legend");
         chart.getData().add(tempChartData);
         changeColorsOfChart(Color.ROYALBLUE);
+        setYaxisLabel("Altitude");
+        setXaxisLabel("Distance");
+
     }
 
     void loadData(ObservableList<Double> xData, ObservableList<Double> yData, Color color, boolean keepCharts) {
@@ -113,8 +124,8 @@ class MyChart extends AreaChart{
             chart.getData().add(axisData);
         }
 
-
     }
+
 
     double calcMaxY(ObservableList<Double> yData) {
         double yMax = 0;
@@ -213,5 +224,32 @@ class MyChart extends AreaChart{
     }
 
 
+    double getHoveredX(double mouseXPos) {
+        double xAxisWidth = xAxis.getWidth();
+        double xAxisTickUnit = xAxis.getTickUnit();
+        double tickInPx = xAxisWidth/xAxisTickUnit;
+        double numberOfTicks = xAxis.getUpperBound() / xAxisTickUnit;
+        double currentCursorXPos;
+        if (xAxis.getUpperBound() > 10) {
+            currentCursorXPos = (int) (mouseXPos-72) / tickInPx*numberOfTicks;
+        } else {
+            currentCursorXPos = Layout.round((mouseXPos-72) / tickInPx*numberOfTicks);
+        }
+        ObservableList<Data<Number, Number>> chartData = chart.getData().get(0).getData();
+        for(int i = 0; i < chartData.size(); i++) {
+            if(Math.abs(chartData.get(i).getXValue().doubleValue() - currentCursorXPos) < 1) {
+//                System.out.println(Layout.round(chartData.get(i).getXValue().doubleValue()) + ", " + Layout.round(chartData.get(i).getYValue().doubleValue()));
+                return chartData.get(i).getXValue().doubleValue();
+            }
+        }
+        return -1;
+    }
+
+
+    double getProperYFromMouse(double yAxisValue) {
+
+
+        return 0;
+    }
 
 }

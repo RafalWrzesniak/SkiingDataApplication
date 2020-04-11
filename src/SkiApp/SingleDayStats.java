@@ -12,24 +12,14 @@ class SingleDayStats {
     private ObservableList<Double> shortAltByDistArray = FXCollections.observableArrayList();
     private ObservableList<Double> shortTimeArray = FXCollections.observableArrayList();
     private ObservableList<Double> shortAltByTimeArray = FXCollections.observableArrayList();
+    private ObservableList<TrackPoint> allUsedPoints = FXCollections.observableArrayList();
 
-    private double totalDistance;
-    private double distDown;
-    private double distUp;
-    private double maxSpeed;
-    private double maxAlt;
-    private double minAlt;
-    private double avgSpeed;
-    private String timeDown;
-    private String timeUp;
-    private String timeRest;
+
+    private double totalDistance, distDown, distUp, maxSpeed, maxAlt, minAlt, avgSpeed, altDown, altUp;
+    private String timeDown, timeUp, timeRest;
+    private int downhill, uphill;
     private LocalTime totalTime;
     private LocalDate date;
-    private int downhill;
-    private int uphill;
-    private double altDown;
-    private double altUp;
-
 
     SingleDayStats(ObservableList<TrackPoint> allTrackedPoints) {
         this.date = allTrackedPoints.get(0).getDate();
@@ -167,6 +157,7 @@ class SingleDayStats {
         this.distDown = distDown/1000;
         this.distUp = distUp/1000;
         this.totalDistance = shortDistanceArray.get(shortDistanceArray.size()-1);
+        this.allUsedPoints = shortTrackedPoints;
     }
 
     private String changeSumTimeToString(Double value) {
@@ -304,5 +295,9 @@ class SingleDayStats {
 
     ObservableList<Double> getDistanceArray() {
         return shortDistanceArray;
+    }
+
+    ObservableList<TrackPoint> getAllUsedPoints() {
+        return allUsedPoints;
     }
 }
