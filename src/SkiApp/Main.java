@@ -392,7 +392,7 @@ class Layout {
         // chart
         chartAlt = new MyChart(new NumberAxis(), new NumberAxis());
         chartAlt.chart.setOnMouseMoved(mouseEvent -> chartInteractiveManagement(mouseEvent.getX()));
-        Circle circle = new Circle(0, 0, 5, colorPicker.getValue());
+        Circle circle = new Circle(0, 0, 4, colorPicker.getValue());
         chartStackPane.getChildren().addAll(chartAlt.chart, circle);
 
 
@@ -425,17 +425,16 @@ class Layout {
     }
 
     private void chartInteractiveManagement(double mouseXPos) {
-        double hoveredX = chartAlt.getHoveredX(mouseXPos);
-        int mouseY = 0;
+        double hoveredX = chartAlt.getChartXFromMousePos(mouseXPos + 6);
+        int altFromGivenChartX = 0;
         try {
             int hoveredPointIndex = oneDayDataList.get(currentFrameId).getDistanceArray().indexOf(hoveredX);
-            mouseY = (int) oneDayDataList.get(currentFrameId).getAllUsedPoints().get(hoveredPointIndex).getAlt();
-            System.out.println(chartAlt.getProperYFromMouse(mouseY));
+            altFromGivenChartX = (int) oneDayDataList.get(currentFrameId).getAllUsedPoints().get(hoveredPointIndex).getAlt();
         } catch(IndexOutOfBoundsException ignored) {}
 
         if(mouseXPos > 72 && mouseXPos < 72 + chartAlt.chart.getXAxis().getWidth()) {
-            chartStackPane.getChildren().get(1).setTranslateX(mouseXPos - chartStackPane.getWidth() / 2);
-            chartStackPane.getChildren().get(1).setTranslateY((chartStackPane.getHeight() / 2)-88);
+            chartStackPane.getChildren().get(1).setTranslateX((mouseXPos - chartStackPane.getWidth() / 2) + 1);
+            chartStackPane.getChildren().get(1).setTranslateY((chartStackPane.getHeight() / 2)-88 - chartAlt.convertAltToPx(altFromGivenChartX));
         }
     }
 

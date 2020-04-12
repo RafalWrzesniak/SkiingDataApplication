@@ -224,7 +224,7 @@ class MyChart extends AreaChart{
     }
 
 
-    double getHoveredX(double mouseXPos) {
+    double getChartXFromMousePos(double mouseXPos) {
         double xAxisWidth = xAxis.getWidth();
         double xAxisTickUnit = xAxis.getTickUnit();
         double tickInPx = xAxisWidth/xAxisTickUnit;
@@ -246,10 +246,21 @@ class MyChart extends AreaChart{
     }
 
 
-    double getProperYFromMouse(double yAxisValue) {
+    double convertAltToPx(double givenAlt) {
+        double yValueWOLowerBound = givenAlt - yAxis.getLowerBound();
+        double axisHeight = yAxis.getHeight();
+
+        double yAxisTickUnit = 500;
+        double numberOfTicks = (yAxis.getUpperBound() - yAxis.getLowerBound()) / yAxisTickUnit;
+
+        double tickInPx = axisHeight/numberOfTicks;
+
+        double oneMtrInPx = (tickInPx*yValueWOLowerBound)/yAxisTickUnit;
 
 
-        return 0;
+//        System.out.println(oneMtrInPx);
+
+        return oneMtrInPx;
     }
 
 }
