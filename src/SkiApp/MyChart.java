@@ -235,31 +235,34 @@ class MyChart extends AreaChart{
         } else {
             currentCursorXPos = Layout.round((mouseXPos-72) / tickInPx*numberOfTicks);
         }
-        ObservableList<Data<Number, Number>> chartData = chart.getData().get(0).getData();
-        for(int i = 0; i < chartData.size(); i++) {
-            if(Math.abs(chartData.get(i).getXValue().doubleValue() - currentCursorXPos) < 1) {
-//                System.out.println(Layout.round(chartData.get(i).getXValue().doubleValue()) + ", " + Layout.round(chartData.get(i).getYValue().doubleValue()));
-                return chartData.get(i).getXValue().doubleValue();
-            }
+
+        ObservableList<Data<Number, Number>> chartData = chart.getData().get(chart.getData().size()-1).getData();
+        double precise;
+        if(chartData.get(chartData.size()-1).getXValue().doubleValue() > 10) {
+            precise = 0.1;
+        } else {
+            precise = 0.01;
         }
-        return -1;
+
+        while (true) {
+            for (int i = 0; i < chartData.size(); i++) {
+                if (Math.abs(chartData.get(i).getXValue().doubleValue() - currentCursorXPos) < precise) {
+                    return chartData.get(i).getXValue().doubleValue();
+                }
+            }
+            precise += 0.01;
+            if(precise > 1) return -1;
+        }
     }
 
 
     double convertAltToPx(double givenAlt) {
         double yValueWOLowerBound = givenAlt - yAxis.getLowerBound();
         double axisHeight = yAxis.getHeight();
-
         double yAxisTickUnit = 500;
         double numberOfTicks = (yAxis.getUpperBound() - yAxis.getLowerBound()) / yAxisTickUnit;
-
         double tickInPx = axisHeight/numberOfTicks;
-
         double oneMtrInPx = (tickInPx*yValueWOLowerBound)/yAxisTickUnit;
-
-
-//        System.out.println(oneMtrInPx);
-
         return oneMtrInPx;
     }
 
