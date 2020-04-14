@@ -1,8 +1,6 @@
 package SkiApp;
 
-import de.saring.leafletmap.LatLong;
 import de.saring.leafletmap.LeafletMapView;
-import de.saring.leafletmap.MapConfig;
 import javafx.application.Application;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -83,14 +81,13 @@ class Layout {
     private ScrollPane scrollPane = new ScrollPane();
     private StackPane mapViewPane = new StackPane();
     private HBox displayStatsPane = new HBox();
-    private LeafletMapView mapView = new LeafletMapView();
+    private MapComponent mapComponent = new MapComponent();
     private HBox dateBox = new HBox();
     private GridPane preciseData = new GridPane();
 
     private ObservableList<OneDayDataWithFrame> oneDayDataList = FXCollections.observableArrayList();
 
     private MyChart chartAlt;
-//    private MyChart chartSpeed;
     private ComboBox<String> chartsType;
     private int currentFrameId = -1;
     private Boolean isFullScreen = false;
@@ -218,9 +215,6 @@ class Layout {
         chosenFileLabel.setStyle("-fx-border-color: limegreen; -fx-background-color: white; -fx-border-width: 3");
         oneDayDataList.get(0).setImClicked(true);
         colorFramesAndDisplayData(oneDayDataList);
-
-        mapView.addMarker(new LatLong(50.089306, 19.751844), "Zwierzątko", 1);
-        mapView.addMarker(new LatLong(50.299849, 21.343366), "Moja ukochana", 1);
     }
 
     private ObservableList<File> chooseFileDialog(Stage primaryStage) {
@@ -430,11 +424,9 @@ class Layout {
         viewDataVBox.setPadding(new Insets(0,5,5,0));
 
         //map
-        mapViewPane.getChildren().add(mapView);
+        mapViewPane.getChildren().add(mapComponent);
         mapViewPane.getStyleClass().add("borderLine");
         mapViewPane.setStyle("-fx-border-style: hidden hidden hidden solid;");
-        mapView.displayMap(new MapConfig());
-
 
     }
 
@@ -493,6 +485,7 @@ class Layout {
                 loadDataToCharts(frame);
                 currentFrameId = frameListObs.indexOf(frame);
                 insertDataForDisplay(frame);
+                mapComponent.createTrack(frame.getAllUsedPoints());
             }
         }
     }
@@ -518,7 +511,7 @@ class Layout {
             }
             chartAlt.loadData(frame.getTimeArray(), frame.getShortAltByTimeArray(), colorPicker.getValue(), keepChartsCheckBox.isSelected());
         }
-
+        // set name of last added chart
         chartAlt.chart.getData().get(chartAlt.chart.getData().size()-1).setName(frame.getDate().toString());
     }
 

@@ -130,7 +130,7 @@ class SingleDayStats {
             }
             // calc max and avg speed
             if(speed > maxSpeed && speed < 80) maxSpeed = speed;
-            if(speed > 2) {
+            if(speed > 2 && speed < 120) {
                 sumSpeed += speed;
                 sample += 1;
             }
