@@ -51,4 +51,12 @@
     -fx-border-color: black
 }
 
-.default-color0.chart-area-symbol { -fx-background-color: royalblue, white; }
+
+.default-color0.chart-area-symbol { -fx-background-color: ROYALBLUE, white; }
+.default-color1.chart-area-symbol { -fx-background-color: ORANGERED, white; }
+.default-color2.chart-area-symbol { -fx-background-color: MEDIUMVIOLETRED, white; }
+.default-color3.chart-area-symbol { -fx-background-color: LIGHTSALMON, white; }
+.default-color4.chart-area-symbol { -fx-background-color: DARKVIOLET, white; }
+.default-color5.chart-area-symbol { -fx-background-color: AQUAMARINE, white; }
+.default-color6.chart-area-symbol { -fx-background-color: FIREBRICK, white; }
+.default-color7.chart-area-symbol { -fx-background-color: MEDIUMPURPLE, white; }

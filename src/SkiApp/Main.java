@@ -14,10 +14,8 @@ import javafx.scene.image.Image;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
-import javafx.stage.FileChooser;
-import javafx.stage.Screen;
-import javafx.stage.Stage;
-import javafx.stage.WindowEvent;
+import javafx.stage.*;
+import javafx.util.Duration;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -49,23 +47,6 @@ public class Main extends Application {
     public static void main(String[] args) {
         launch(args);
     }
-
-//    public static void main(String[] args) {
-//        try {
-////            GPXparser gpXparser = new GPXparser(new File("E:\\xInne\\SkiTracker-export-2020-03-16-10-55-45.gpx"));
-//            GPXparser gpXparser = new GPXparser(new File("E:\\xInne\\SkiTracker-export.gpx"));
-//            ObservableList<TrackPoint> allTrackedPoints = gpXparser.parseXMLtoTrackPointList();
-//            ObservableList<ObservableList<TrackPoint>> dayList = SingleDayStats.divideAllPointsToDays(allTrackedPoints);
-//            ObservableList<OneDayDataWithFrame> oneDayDataList = FXCollections.observableArrayList();
-//            for (int i = 0; i < dayList.size(); i++) {
-//                oneDayDataList.add(new OneDayDataWithFrame(dayList.get(i), true));
-//            }
-//
-//
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//    }
 
 
 }
@@ -405,9 +386,12 @@ class Layout {
                 chartAlt.chart.getData().clear();
                 insertDataForDisplay(oneDayDataList.get(currentFrameId));
                 loadDataToCharts(oneDayDataList.get(currentFrameId));
+                mapManagement(oneDayDataList.get(currentFrameId));
                 chartsType.setDisable(false);
+                colorPicker.setDisable(false);
             } else {
                 chartsType.setDisable(true);
+                colorPicker.setDisable(true);
             }
         });
         // detailed point label
@@ -451,6 +435,8 @@ class Layout {
                     oneDayDataList.get(currentFrameId).getAllUsedPoints().get(hoveredPointIndex).getAlt(),
                     oneDayDataList.get(currentFrameId).getAllUsedPoints().get(hoveredPointIndex).getLat(),
                     oneDayDataList.get(currentFrameId).getAllUsedPoints().get(hoveredPointIndex).getLon()));
+
+            mapComponent.moveCircle(oneDayDataList.get(currentFrameId).getAllUsedPoints().get(hoveredPointIndex));
         } catch(IndexOutOfBoundsException ignored) {}
     }
 
@@ -482,13 +468,27 @@ class Layout {
             if(frame.isImClicked()) {
                 frame.getFrameStats().getStyleClass().set(0, "frameClicked");
                 frame.setImClicked(false);
-                loadDataToCharts(frame);
                 currentFrameId = frameListObs.indexOf(frame);
                 insertDataForDisplay(frame);
-                mapComponent.createTrack(frame.getAllUsedPoints());
+                if(chartAlt.chart.getData().size() <= 7) {
+                    loadDataToCharts(frame);
+                    mapManagement(frame);
+                }
             }
         }
     }
+
+    private void mapManagement(OneDayDataWithFrame frame) {
+        if(!keepChartsCheckBox.isSelected()) {
+            mapComponent.clearAll();
+        }
+        String currentColor = chartAlt.chart.getData().get(chartAlt.chart.getData().size()-1).getNode().lookup(".chart-series-area-line").getStyle();
+        currentColor = currentColor.substring(currentColor.indexOf('#'), currentColor.indexOf("ff;"));
+        mapComponent.createTrack(frame.getAllUsedPoints(), currentColor);
+        mapComponent.addMarker(frame.getAllUsedPoints().get(frame.getAltArray().indexOf(frame.getMaxAlt())), String.valueOf((int) frame.getMaxAlt()), "Max altitude", frame.getDate().toString());
+        mapComponent.addCircle(frame.getAllUsedPoints().get(0), currentColor);
+    }
+
 
 
     private void loadDataToCharts(OneDayDataWithFrame frame) {
@@ -513,6 +513,7 @@ class Layout {
         }
         // set name of last added chart
         chartAlt.chart.getData().get(chartAlt.chart.getData().size()-1).setName(frame.getDate().toString());
+
     }
 
 

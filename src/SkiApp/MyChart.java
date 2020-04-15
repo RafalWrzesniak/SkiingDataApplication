@@ -2,29 +2,27 @@ package SkiApp;
 
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
-import javafx.beans.InvalidationListener;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
-import javafx.scene.Node;
 import javafx.scene.chart.AreaChart;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.Label;
-import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.util.Duration;
+import java.util.ArrayList;
+import java.util.List;
 
-import java.awt.event.MouseEvent;
 
 class MyChart extends AreaChart{
 
+    private final List<Color> colors = List.of(Color.ORANGERED, Color.MEDIUMVIOLETRED, Color.LIGHTSALMON, Color.DARKVIOLET, Color.AQUAMARINE, Color.FIREBRICK, Color.MEDIUMPURPLE);
+    private List<Color> colorsTemp = new ArrayList<>();
     private NumberAxis xAxis;
     private NumberAxis yAxis;
     private static double maxXValue = 0;
     private static double maxYValue = 0;
     AreaChart<Number, Number> chart;
-    private int hovers;
 
     MyChart(NumberAxis xAxis, NumberAxis yAxis) {
         super(xAxis, yAxis);
@@ -56,8 +54,9 @@ class MyChart extends AreaChart{
         tempChartData.setName("Chart legend");
         chart.getData().add(tempChartData);
         changeColorsOfChart(Color.ROYALBLUE);
-        setYaxisLabel("Altitude");
+        setYaxisLabel();
         setXaxisLabel("Distance");
+        colorsTemp.addAll(colors);
 
     }
 
@@ -120,14 +119,20 @@ class MyChart extends AreaChart{
         // animate data
         if(!keepCharts) {
             animateChart(axisData, yMin, color);
+            colorsTemp.clear();
+            colorsTemp.addAll(colors);
         } else {
             chart.getData().add(axisData);
+            if(colorsTemp.size() > 0) {
+                changeColorsOfChart(colorsTemp.get(0));
+                colorsTemp.remove(0);
+            }
         }
 
     }
 
 
-    double calcMaxY(ObservableList<Double> yData) {
+    private double calcMaxY(ObservableList<Double> yData) {
         double yMax = 0;
         for (Double yDatum : yData) {
             if (yDatum > yMax) yMax = yDatum;
@@ -135,7 +140,7 @@ class MyChart extends AreaChart{
         return yMax;
     }
 
-    double calcMinY(ObservableList<Double> yData) {
+    private double calcMinY(ObservableList<Double> yData) {
         double yMin = 10000;
         for (Double yDatum : yData) {
             if (yDatum < yMin) yMin = yDatum;
@@ -146,8 +151,8 @@ class MyChart extends AreaChart{
 
     void changeColorsOfChart(Color color) {
         try {
-            chart.getData().get(0).getNode().lookup(".chart-series-area-fill").setStyle("-fx-fill: #" + color.toString().substring(2, 8) + "35;");
-            chart.getData().get(0).getNode().lookup(".chart-series-area-line").setStyle("-fx-stroke-width: 1.1; -fx-stroke: #" + color.toString().substring(2, 8) + "ff;");
+            chart.getData().get(chart.getData().size()-1).getNode().lookup(".chart-series-area-fill").setStyle("-fx-fill: #" + color.toString().substring(2, 8) + "35;");
+            chart.getData().get(chart.getData().size()-1).getNode().lookup(".chart-series-area-line").setStyle("-fx-stroke-width: 1.1; -fx-stroke: #" + color.toString().substring(2, 8) + "ff;");
             Label tempLabel = (Label) chart.lookup("Label.chart-legend-item");
             tempLabel.getGraphic().setStyle("-fx-background-color: #" + color.toString().substring(2, 8) + "ff, white;");
         } catch (NullPointerException | IndexOutOfBoundsException ignored) {}
@@ -158,11 +163,11 @@ class MyChart extends AreaChart{
         this.xAxis.setLabel(String.join(" ", name, name.equals("Distance") ? "[km]" : "[h]"));
     }
 
-    void setYaxisLabel(String name) {
-        this.yAxis.setLabel(String.join(" ", name, name.equals("Altitude") ? "[m]" : "[kh/h]"));
+    private void setYaxisLabel() {
+        this.yAxis.setLabel(String.join(" ", "Altitude", "[m]"));
     }
 
-    void animateChart(XYChart.Series<Number, Number> axisData, double yMin, Color color) {
+    private void animateChart(XYChart.Series<Number, Number> axisData, double yMin, Color color) {
 
         // prepare start data
         double size = 15;
@@ -245,9 +250,9 @@ class MyChart extends AreaChart{
         }
 
         while (true) {
-            for (int i = 0; i < chartData.size(); i++) {
-                if (Math.abs(chartData.get(i).getXValue().doubleValue() - currentCursorXPos) < precise) {
-                    return chartData.get(i).getXValue().doubleValue();
+            for (Data<Number, Number> chartDatum : chartData) {
+                if (Math.abs(chartDatum.getXValue().doubleValue() - currentCursorXPos) < precise) {
+                    return chartDatum.getXValue().doubleValue();
                 }
             }
             precise += 0.01;
@@ -262,8 +267,7 @@ class MyChart extends AreaChart{
         double yAxisTickUnit = 500;
         double numberOfTicks = (yAxis.getUpperBound() - yAxis.getLowerBound()) / yAxisTickUnit;
         double tickInPx = axisHeight/numberOfTicks;
-        double oneMtrInPx = (tickInPx*yValueWOLowerBound)/yAxisTickUnit;
-        return oneMtrInPx;
+        return (tickInPx*yValueWOLowerBound)/yAxisTickUnit;
     }
 
 }

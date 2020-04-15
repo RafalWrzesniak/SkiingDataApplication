@@ -21,21 +21,19 @@ class MapComponent extends StackPane {
             if(state == Worker.State.RUNNING) {
                 webEngine.executeScript("var myMap = L.map('map').setView([50.194579, 20.547605], 9);");
                 webEngine.executeScript("L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution: 'SkiApp by Rafał Wrześniak',}).addTo(myMap)");
-//                addMarker(new TrackPoint("50.299849", "21.343366", "2000", "2019-03-10T09:30:44Z"), "Moja ukochana");
-//                addMarker(new TrackPoint("50.089306", "19.751844", "2000", "2019-03-10T09:30:44Z"), "Zwierzątko");
-//                addCircle(new TrackPoint("50.299849", "21.343366", "2000", "2019-03-10T09:30:44Z"));
             }
         });
     }
 
-    void addMarker(TrackPoint trackPoint, String name) {
-        webEngine.executeScript("var "+ name.replace(' ', '_') + " = L.marker([" +  trackPoint.getLat() + ", " +  trackPoint.getLon() + "]).addTo(myMap);");
-        webEngine.executeScript(name.replace(' ', '_') + ".bindPopup('<b>" + name + "</b>').openPopup()");
+    void addMarker(TrackPoint trackPoint, String name, String name2, String name3) {
+        webEngine.executeScript("var "+ name2.replace(' ', '_') + " = L.marker([" +  trackPoint.getLat() + ", " +  trackPoint.getLon() + "]).addTo(myMap);");
+        if(name2.contains("Max altitude")) name = "" + name + " [m]";
+        webEngine.executeScript(name2.replace(' ', '_') + ".bindPopup('<b><center>" + name + "</center></b>" + name3 + "<br>" + name2 + "')");
     }
 
-    void addCircle(TrackPoint trackPoint) {
-        webEngine.executeScript("var circle = L.circle([" + trackPoint.getLat() + ", " +  trackPoint.getLon() + "], {color: 'royalblue'," +
-                " fillColor: 'royalblue', fillOpacity: 0.35, radius: 500}).addTo(myMap);");
+    void addCircle(TrackPoint trackPoint, String color) {
+        webEngine.executeScript("var circle = L.circle([" + trackPoint.getLat() + ", " +  trackPoint.getLon() + "], " +
+                "{color: '" + color + "', fillColor: 'white', fillOpacity: 0.8, radius: 120}).addTo(myMap);");
     }
 
     void moveCircle(TrackPoint trackPoint) {
@@ -53,7 +51,7 @@ class MapComponent extends StackPane {
         webEngine.executeScript("myMap.setView([" + lat + ", " + lon + "], " + zoomLevel + ");");
     }
 
-    void createTrack(ObservableList<TrackPoint> trackPoints) {
+    void createTrack(ObservableList<TrackPoint> trackPoints, String color) {
         String polylineList = "[";
         for(TrackPoint trackPoint : trackPoints) {
             polylineList = polylineList.concat("[" + trackPoint.getLat() + ", " + trackPoint.getLon() + "]");
@@ -63,10 +61,12 @@ class MapComponent extends StackPane {
                 polylineList = polylineList.concat("]");
             }
         }
+        String name = "track_" + trackPoints.get(0).getDate().toString();
+        name = name.replace('-', '_');
 
-        webEngine.executeScript("var track = L.polyline([" + polylineList + "], " +
-                "{color: 'royalblue', weight: 3}).addTo(myMap); ");
-        webEngine.executeScript("myMap.fitBounds(track.getBounds());");
+        webEngine.executeScript("var " + name + " = L.polyline([" + polylineList + "], " +
+                "{color: '" + color + "', weight: 3}).addTo(myMap); ");
+        webEngine.executeScript("myMap.fitBounds(" + name + ".getBounds());");
 
     }
 

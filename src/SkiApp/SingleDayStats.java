@@ -98,6 +98,12 @@ class SingleDayStats {
                     shortTrackedPoints.add(allTrackedPoints.get(i));
                     shortTimeArray.add(absTime / 3600);
                     shortAltByTimeArray.add(alt);
+                    // calc max and min alt
+                    if(alt > maxAlt) {
+                        maxAlt = alt;
+                    } else if(alt < minAlt){
+                        minAlt = alt;
+                    }
                 }
                 isGoingDown = false;
                 if(speed > speedToRest) {
@@ -122,12 +128,7 @@ class SingleDayStats {
                 shortAltByTimeArray.add(alt);
                 shortTrackedPoints.add(allTrackedPoints.get(i));
             }
-            // calc max and min alt
-            if(alt > maxAlt) {
-                maxAlt = alt;
-            } else if(alt < minAlt){
-                minAlt = alt;
-            }
+
             // calc max and avg speed
             if(speed > maxSpeed && speed < 80) maxSpeed = speed;
             if(speed > 2 && speed < 120) {
