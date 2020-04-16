@@ -57,7 +57,6 @@ class MyChart extends AreaChart{
         setYaxisLabel();
         setXaxisLabel("Distance");
         colorsTemp.addAll(colors);
-
     }
 
     void loadData(ObservableList<Double> xData, ObservableList<Double> yData, Color color, boolean keepCharts) {

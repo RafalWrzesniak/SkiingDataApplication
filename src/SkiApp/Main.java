@@ -1,11 +1,11 @@
 package SkiApp;
 
-import de.saring.leafletmap.LeafletMapView;
 import javafx.application.Application;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.geometry.Side;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.chart.*;
@@ -15,7 +15,6 @@ import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.stage.*;
-import javafx.util.Duration;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -30,10 +29,10 @@ public class Main extends Application {
     @Override
     public void start(Stage primaryStage) {
         Group root = new Group();
-        Scene scene = new Scene(root, 1050, 850, Color.WHITE);
+        Scene scene = new Scene(root, 1070, 850, Color.WHITE);
         scene.getStylesheets().add("");
         scene.getStylesheets().set(0, "/styles.css");
-        primaryStage.setMinWidth(770);
+        primaryStage.setMinWidth(1070);
         primaryStage.setMinHeight(480);
         Layout layout = new Layout(primaryStage);
         primaryStage.getIcons().add(new Image(getClass().getResourceAsStream("/skiIcon.png") ));
@@ -121,6 +120,11 @@ class Layout {
             displayStatsPane.setMaxWidth(primaryStage.getScene().getWidth()-scrollPane.getWidth());
         });
 
+        chartAlt.chart.legendSideProperty().addListener((observableValue, side, t1) -> {
+            if(t1.equals(Side.RIGHT)) {
+                primaryStage.setWidth(primaryStage.getWidth()+90);
+            }
+        });
     }
 
 
@@ -417,6 +421,7 @@ class Layout {
     private void chartInteractiveManagement(double mouseXPos) {
         double hoveredX = chartAlt.getChartXFromMousePos(mouseXPos);
         int altFromGivenChartX, hoveredPointIndex;
+        int yOffset = chartAlt.chart.getLegendSide().equals(Side.BOTTOM) ? 88 : 88-24;
         try {
             ObservableList<XYChart.Data<Number, Number>> chartData = chartAlt.chart.getData().get(chartAlt.chart.getData().size()-1).getData();
             if(chartsType.getValue().equals("Distance") && hoveredX <= chartData.get(chartData.size()-2).getXValue().doubleValue()) {
@@ -427,7 +432,7 @@ class Layout {
             altFromGivenChartX = (int) oneDayDataList.get(currentFrameId).getAllUsedPoints().get(hoveredPointIndex).getAlt();
             if(mouseXPos > 72 && mouseXPos < 72 + chartAlt.chart.getXAxis().getWidth()) {
                 chartStackPane.getChildren().get(1).setTranslateX((mouseXPos - chartStackPane.getWidth() / 2));
-                chartStackPane.getChildren().get(1).setTranslateY((chartStackPane.getHeight() / 2)-88 - chartAlt.convertAltToPx(altFromGivenChartX));
+                chartStackPane.getChildren().get(1).setTranslateY((chartStackPane.getHeight() / 2)-yOffset - chartAlt.convertAltToPx(altFromGivenChartX));
             }
             // set label
             detailedPoint.setText(String.format(chartsType.getValue() +  ": %.1f, Altitude: %.0f, (Lat, Lon): (%.2f, %.2f)",
@@ -513,6 +518,17 @@ class Layout {
         }
         // set name of last added chart
         chartAlt.chart.getData().get(chartAlt.chart.getData().size()-1).setName(frame.getDate().toString());
+
+        // move legend right if too much charts
+        if(chartAlt.chart.getData().size() > 4) {
+            chartAlt.chart.setLegendSide(Side.RIGHT);
+            chartAlt.chart.setPrefWidth(500+90);
+
+        } else {
+            chartAlt.chart.setLegendSide(Side.BOTTOM);
+            chartAlt.chart.setPrefWidth(500);
+        }
+
 
     }
 
