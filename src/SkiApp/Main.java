@@ -5,7 +5,6 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.geometry.Side;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.chart.*;
@@ -29,7 +28,7 @@ public class Main extends Application {
     @Override
     public void start(Stage primaryStage) {
         Group root = new Group();
-        Scene scene = new Scene(root, 1070, 850, Color.WHITE);
+        Scene scene = new Scene(root, 1270, 800, Color.WHITE);
         scene.getStylesheets().add("");
         scene.getStylesheets().set(0, "/styles.css");
         primaryStage.setMinWidth(1070);
@@ -46,8 +45,6 @@ public class Main extends Application {
     public static void main(String[] args) {
         launch(args);
     }
-
-
 }
 
 
@@ -59,11 +56,10 @@ class Layout {
     private VBox dateColumnVBox = new VBox();
     private VBox viewDataVBox = new VBox();
     private ScrollPane scrollPane = new ScrollPane();
-    private StackPane mapViewPane = new StackPane();
-    private HBox displayStatsPane = new HBox();
     private MapComponent mapComponent = new MapComponent();
     private HBox dateBox = new HBox();
     private GridPane preciseData = new GridPane();
+    private HBox centerHbox = new HBox();
 
     private ObservableList<OneDayDataWithFrame> oneDayDataList = FXCollections.observableArrayList();
 
@@ -76,6 +72,7 @@ class Layout {
     private StackPane chartStackPane = new StackPane();
     private Label detailedPoint;
 
+
     Layout(Stage primaryStage) {
         fileChooser(primaryStage);
         center();
@@ -86,9 +83,14 @@ class Layout {
 
     void setupAfterWindowShown(Stage primaryStage){
         scrollPane.setMinWidth(217);
-        mapViewPane.setMaxWidth(primaryStage.getScene().getWidth()-scrollPane.getMinWidth());
-        mapViewPane.setMaxHeight(primaryStage.getScene().getHeight()-displayStatsPane.getHeight()-fileChooserHBox.getHeight());
-        displayStatsPane.setMaxWidth(primaryStage.getScene().getWidth()-scrollPane.getPrefWidth());
+        mapComponent.setMaxWidth(primaryStage.getScene().getWidth()-scrollPane.getMinWidth()-500);
+        mapComponent.setMinWidth(primaryStage.getScene().getWidth()-scrollPane.getMinWidth()-500);
+        mapComponent.setPrefWidth(primaryStage.getScene().getWidth()-scrollPane.getMinWidth()-500);
+
+        centerHbox.setMaxHeight(primaryStage.getScene().getHeight()-fileChooserHBox.getHeight());
+        centerHbox.setMinHeight(primaryStage.getScene().getHeight()-fileChooserHBox.getHeight());
+        centerHbox.setPrefHeight(primaryStage.getScene().getHeight()-fileChooserHBox.getHeight());
+
 
         primaryStage.maximizedProperty().addListener((observableValue, aBoolean, isFullScreen) -> {
 //            System.out.println("isFullScreen: " + isFullScreen);
@@ -105,9 +107,9 @@ class Layout {
             scrollPane.setMaxHeight(sceneHeight-fileChooserHBox.getHeight());
             scrollPane.setMinHeight(sceneHeight-fileChooserHBox.getHeight());
             scrollPane.setPrefHeight(sceneHeight-fileChooserHBox.getHeight());
-            mapViewPane.setMinHeight(sceneHeight-displayStatsPane.getHeight()-fileChooserHBox.getHeight());
-            mapViewPane.setMaxHeight(sceneHeight-displayStatsPane.getHeight()-fileChooserHBox.getHeight());
-            mapViewPane.setPrefHeight(sceneHeight-displayStatsPane.getHeight()-fileChooserHBox.getHeight());
+            centerHbox.setMaxHeight(sceneHeight-fileChooserHBox.getHeight());
+            centerHbox.setMinHeight(sceneHeight-fileChooserHBox.getHeight());
+            centerHbox.setPrefHeight(sceneHeight-fileChooserHBox.getHeight());
             if(dateColumnVBox.getHeight() > sceneHeight-fileChooserHBox.getHeight()){
                 scrollPane.setPrefWidth(dateColumnVBox.getWidth()+15);
             } else {
@@ -116,22 +118,19 @@ class Layout {
         });
 
         primaryStage.getScene().widthProperty().addListener((obs, oldVal, newVal) -> {
-            mapViewPane.setMaxWidth(primaryStage.getScene().getWidth()-scrollPane.getWidth());
-            displayStatsPane.setMaxWidth(primaryStage.getScene().getWidth()-scrollPane.getWidth());
+            mapComponent.setMaxWidth(primaryStage.getScene().getWidth()-scrollPane.getMinWidth()-500);
+            mapComponent.setMinWidth(primaryStage.getScene().getWidth()-scrollPane.getMinWidth()-500);
+            mapComponent.setPrefWidth(primaryStage.getScene().getWidth()-scrollPane.getMinWidth()-500);
         });
 
-        chartAlt.chart.legendSideProperty().addListener((observableValue, side, t1) -> {
-            if(t1.equals(Side.RIGHT)) {
-                primaryStage.setWidth(primaryStage.getWidth()+90);
-            }
-        });
     }
 
 
     private void borderPane(){
         mainBorderPane.setTop(fileChooserHBox);
         mainBorderPane.setLeft(scrollPane);
-        mainBorderPane.setCenter(viewDataVBox);
+        mainBorderPane.setCenter(centerHbox);
+
     }
 
 
@@ -221,7 +220,6 @@ class Layout {
         dateColumnVBox.setPadding(new Insets(3, 3,3,3));
         dateColumnVBox.setOnMouseClicked(mouseEvent -> colorFramesAndDisplayData(oneDayDataList));
 
-
         scrollPane.hbarPolicyProperty().setValue(ScrollPane.ScrollBarPolicy.NEVER);
         scrollPane.vbarPolicyProperty().setValue(ScrollPane.ScrollBarPolicy.AS_NEEDED);
         scrollPane.setMaxHeight(Screen.getPrimary().getVisualBounds().getHeight());
@@ -237,10 +235,6 @@ class Layout {
     }
 
     private void center() {
-        displayStatsPane.setMaxHeight(400);
-        displayStatsPane.setMinHeight(400);
-        displayStatsPane.setPrefHeight(400);
-
 
         // display data
         final Label date = new Label("Date:");
@@ -248,7 +242,6 @@ class Layout {
         final Label times = new Label("Time down/up/rest:");
         final Label distance = new Label("Total distance:");
         final Label distanceDownUp = new Label("Distance down/up:");
-//        final Label distanceUp = new Label("Distance up:");
         final Label maxSpeed = new Label("Max speed:");
         final Label avgSpeed = new Label("Average speed:");
         final Label maxAltitude = new Label("Max altitude:");
@@ -290,7 +283,6 @@ class Layout {
         }
 
         // data
-//        preciseData.setMaxHeight(300);
         for (int i = 0; i < finalLabels.size(); i++) {
             preciseData.add(finalLabels.get(i), 0, i);
             preciseData.add(valueLabels.get(i), 1, i);
@@ -315,28 +307,14 @@ class Layout {
         preciseDataAndDate.setMinHeight(320);
         preciseDataAndDate.setPrefHeight(320);
         preciseDataAndDate.getStyleClass().add("mainLeftBackground");
-        preciseDataAndDate.getStyleClass().add("borderLine");
-        preciseDataAndDate.setStyle("-fx-border-style: hidden solid solid hidden;");
         preciseDataAndDate.setPadding(new Insets(20, 20, 20, 20));
-
-
-
-        // charts controls
-        GridPane chartsControl = new GridPane();
-        chartsControl.setMaxHeight(80);
-        chartsControl.setMinHeight(80);
-        chartsControl.setPrefHeight(80);
-        chartsControl.setPadding(new Insets(10, 30, 10,30));
-        chartsControl.setHgap(30);
-        chartsControl.setVgap(4);
-        chartsControl.getStyleClass().add("borderLine");
-        chartsControl.setStyle("-fx-border-style: hidden hidden hidden solid;");
 
         // color picker
         Label chartsColor = new Label("Charts color:");
-        chartsColor.setPrefWidth(105);
+        chartsColor.setMinWidth(105);
         chartsColor.setAlignment(Pos.CENTER);
         colorPicker.setPrefWidth(105);
+        colorPicker.setMinHeight(Region.USE_PREF_SIZE);
         colorPicker.setValue(Color.ROYALBLUE);
         colorPicker.setOnAction(actionEvent -> {
             Circle tempCircle = (Circle) chartStackPane.getChildren().get(1);
@@ -361,27 +339,6 @@ class Layout {
                 e.getMessage();
             }
         });
-
-
-        chartsControl.add(chartsColor,0, 0);
-        chartsControl.add(chartsTypeLabel,1, 0);
-        chartsControl.add(colorPicker, 0, 1);
-        chartsControl.add(chartsType, 1, 1);
-
-        VBox preciseAndControl = new VBox(preciseDataAndDate, chartsControl);
-
-        // chart
-        chartAlt = new MyChart(new NumberAxis(), new NumberAxis());
-        chartAlt.chart.setOnMouseMoved(mouseEvent -> chartInteractiveManagement(mouseEvent.getX()));
-        chartAlt.chart.setOnMouseEntered(mouseEvent -> {
-                if(chartAlt.chart.getData().get(0).getData().size() > 10) {
-                    chartInteractiveManagement(73);
-                    chartStackPane.getChildren().get(1).setVisible(true);
-        }});
-        Circle circle = new Circle(0, 0, 4, colorPicker.getValue());
-        circle.setVisible(false);
-        chartStackPane.getChildren().addAll(chartAlt.chart, circle);
-
         // keep charts checkbox
         keepChartsCheckBox = new CheckBox("Keep charts");
         keepChartsCheckBox.setDisable(true);
@@ -398,30 +355,68 @@ class Layout {
                 colorPicker.setDisable(true);
             }
         });
+
+
+        // charts controls
+        GridPane chartsControl = new GridPane();
+        chartsControl.setPadding(new Insets(0, 0, 0, 30));
+
+        Button fejkbutton = new Button();
+        fejkbutton.setVisible(false);
+        Button fejkbutton2 = new Button();
+        fejkbutton2.setVisible(false);
+
+        chartsControl.add(chartsColor,0, 0);
+        chartsControl.add(colorPicker, 0, 1);
+        chartsControl.add(fejkbutton, 0, 2);
+        chartsControl.add(chartsTypeLabel,0, 3);
+        chartsControl.add(chartsType, 0, 4);
+        chartsControl.add(fejkbutton2, 0, 5);
+        chartsControl.add(keepChartsCheckBox, 0, 6);
+        chartsControl.setVgap(10);
+        chartsControl.setAlignment(Pos.CENTER);
+
+        HBox preciseAndControl = new HBox(preciseDataAndDate, chartsControl);
+
+
+
+        // chart
+        chartAlt = new MyChart(new NumberAxis(), new NumberAxis());
+        chartAlt.chart.setOnMouseMoved(mouseEvent -> chartInteractiveManagement(mouseEvent.getX()));
+        chartAlt.chart.setOnMouseEntered(mouseEvent -> {
+                if(chartAlt.chart.getData().get(0).getData().size() > 10) {
+                    chartInteractiveManagement(73);
+                    chartStackPane.getChildren().get(1).setVisible(true);
+        }});
+        Circle circle = new Circle(0, 0, 4, colorPicker.getValue());
+        circle.setVisible(false);
+        chartStackPane.getChildren().addAll(chartAlt.chart, circle);
+
         // detailed point label
         detailedPoint = new Label(String.format(chartsType.getValue() +  ": %.1f, Altitude: %.0f, (Lat, Lon): (%.2f, %.2f)", 0.0, 0.0, 0.0, 0.0));
         detailedPoint.setPadding(new Insets(2,0,0,0));
-        HBox underChart = new HBox(keepChartsCheckBox, detailedPoint);
-        underChart.setSpacing(20);
 
-        VBox forCharts = new VBox(chartStackPane, underChart);
-        forCharts.setPadding(new Insets(10, 0, 23, 0));
 
-        displayStatsPane.getChildren().addAll(preciseAndControl, forCharts);
-        viewDataVBox.getChildren().addAll(displayStatsPane, mapViewPane);
+        VBox forCharts = new VBox(chartStackPane, detailedPoint);
+        forCharts.setAlignment(Pos.CENTER);
+        forCharts.setSpacing(10);
+        forCharts.setPadding(new Insets(10, 0, 0, 0));
+
+
+        forCharts.setMaxHeight(400);
+        forCharts.setMaxWidth(500);
+        viewDataVBox.setMaxWidth(500);
+        viewDataVBox.getChildren().addAll(preciseAndControl, forCharts);
         viewDataVBox.setPadding(new Insets(0,5,5,0));
 
-        //map
-        mapViewPane.getChildren().add(mapComponent);
-        mapViewPane.getStyleClass().add("borderLine");
-        mapViewPane.setStyle("-fx-border-style: hidden hidden hidden solid;");
+        centerHbox = new HBox(viewDataVBox, mapComponent);
 
     }
 
     private void chartInteractiveManagement(double mouseXPos) {
         double hoveredX = chartAlt.getChartXFromMousePos(mouseXPos);
         int altFromGivenChartX, hoveredPointIndex;
-        int yOffset = chartAlt.chart.getLegendSide().equals(Side.BOTTOM) ? 88 : 88-24;
+        int yOffset = 88;
         try {
             ObservableList<XYChart.Data<Number, Number>> chartData = chartAlt.chart.getData().get(chartAlt.chart.getData().size()-1).getData();
             if(chartsType.getValue().equals("Distance") && hoveredX <= chartData.get(chartData.size()-2).getXValue().doubleValue()) {
@@ -518,18 +513,6 @@ class Layout {
         }
         // set name of last added chart
         chartAlt.chart.getData().get(chartAlt.chart.getData().size()-1).setName(frame.getDate().toString());
-
-        // move legend right if too much charts
-        if(chartAlt.chart.getData().size() > 4) {
-            chartAlt.chart.setLegendSide(Side.RIGHT);
-            chartAlt.chart.setPrefWidth(500+90);
-
-        } else {
-            chartAlt.chart.setLegendSide(Side.BOTTOM);
-            chartAlt.chart.setPrefWidth(500);
-        }
-
-
     }
 
 
