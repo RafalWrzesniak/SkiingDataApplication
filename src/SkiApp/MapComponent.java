@@ -2,8 +2,10 @@ package SkiApp;
 
 import javafx.collections.ObservableList;
 import javafx.concurrent.Worker;
+import javafx.event.EventHandler;
 import javafx.scene.layout.StackPane;
 import javafx.scene.web.WebEngine;
+import javafx.scene.web.WebEvent;
 import javafx.scene.web.WebView;
 
 
@@ -11,6 +13,7 @@ class MapComponent extends StackPane {
 
     private final WebView webView = new WebView();
     private final WebEngine webEngine = webView.getEngine();
+    private int zoomLevel;
 
 
     MapComponent() {
@@ -20,9 +23,16 @@ class MapComponent extends StackPane {
         webEngine.getLoadWorker().stateProperty().addListener((observableValue, state, t1) -> {
             if(state == Worker.State.RUNNING) {
                 webEngine.executeScript("var myMap = L.map('map').setView([50.194579, 20.547605], 9);");
-                webEngine.executeScript("L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution: 'SkiApp by Rafał Wrześniak',}).addTo(myMap)");
+                webEngine.executeScript("L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution: 'SkiApp by Rafał Wrześniak    .',}).addTo(myMap)");
             }
         });
+        webEngine.setOnAlert(new EventHandler<WebEvent<String>>() {
+            @Override
+            public void handle(WebEvent<String> stringWebEvent) {
+                zoomLevel = Integer.parseInt(stringWebEvent.getData());
+            }
+        });
+
     }
 
     void addMarker(TrackPoint trackPoint, String name, String name2, String name3) {
@@ -77,6 +87,11 @@ class MapComponent extends StackPane {
                    "       myMap.removeLayer(myMap._layers[i]);" +
                    "   }" +
                    "}");
+    }
+
+    int getZoom() {
+        webEngine.executeScript("alert(myMap.getZoom());");
+        return zoomLevel;
     }
 
 }

@@ -38,7 +38,7 @@ public class Main extends Application {
         primaryStage.setScene(scene);
         primaryStage.setTitle("Your ski application");
         root.getChildren().add(layout.mainBorderPane);
-        primaryStage.addEventHandler(WindowEvent.WINDOW_SHOWN, window -> layout.setupAfterWindowShown(primaryStage));
+        primaryStage.addEventHandler(WindowEvent.WINDOW_SHOWN, window -> layout.setupAfterWindowShown());
         primaryStage.show();
     }
 
@@ -60,6 +60,7 @@ class Layout {
     private HBox dateBox = new HBox();
     private GridPane preciseData = new GridPane();
     private HBox centerHbox = new HBox();
+    private VBox forCharts = new VBox();
 
     private ObservableList<OneDayDataWithFrame> oneDayDataList = FXCollections.observableArrayList();
 
@@ -72,30 +73,39 @@ class Layout {
     private StackPane chartStackPane = new StackPane();
     private Label detailedPoint;
 
+    private Stage primaryStage;
 
     Layout(Stage primaryStage) {
-        fileChooser(primaryStage);
+        this.primaryStage = primaryStage;
+        fileChooser();
         center();
         dateColumn();
         borderPane();
     }
 
 
-    void setupAfterWindowShown(Stage primaryStage){
+    void setupAfterWindowShown(){
         scrollPane.setMinWidth(217);
         mapComponent.setMaxWidth(primaryStage.getScene().getWidth()-scrollPane.getMinWidth()-500);
         mapComponent.setMinWidth(primaryStage.getScene().getWidth()-scrollPane.getMinWidth()-500);
         mapComponent.setPrefWidth(primaryStage.getScene().getWidth()-scrollPane.getMinWidth()-500);
 
-        centerHbox.setMaxHeight(primaryStage.getScene().getHeight()-fileChooserHBox.getHeight());
-        centerHbox.setMinHeight(primaryStage.getScene().getHeight()-fileChooserHBox.getHeight());
-        centerHbox.setPrefHeight(primaryStage.getScene().getHeight()-fileChooserHBox.getHeight());
+        mapComponent.setMaxHeight(primaryStage.getScene().getHeight()-fileChooserHBox.getHeight());
+        mapComponent.setMinHeight(primaryStage.getScene().getHeight()-fileChooserHBox.getHeight());
+        mapComponent.setPrefHeight(primaryStage.getScene().getHeight()-fileChooserHBox.getHeight());
+
+        centerHbox.setMaxHeight(primaryStage.getScene().getHeight()-fileChooserHBox.getHeight()+5);
+        centerHbox.setMinHeight(primaryStage.getScene().getHeight()-fileChooserHBox.getHeight()+5);
+        centerHbox.setPrefHeight(primaryStage.getScene().getHeight()-fileChooserHBox.getHeight()+5);
+
+        forCharts.setPrefHeight(primaryStage.getScene().getHeight() - fileChooserHBox.getHeight());
 
 
         primaryStage.maximizedProperty().addListener((observableValue, aBoolean, isFullScreen) -> {
 //            System.out.println("isFullScreen: " + isFullScreen);
            this.isFullScreen = isFullScreen;
         });
+
 
         primaryStage.heightProperty().addListener((obs, sceneHeightObs, newVal) -> {
             double sceneHeight;
@@ -110,6 +120,9 @@ class Layout {
             centerHbox.setMaxHeight(sceneHeight-fileChooserHBox.getHeight());
             centerHbox.setMinHeight(sceneHeight-fileChooserHBox.getHeight());
             centerHbox.setPrefHeight(sceneHeight-fileChooserHBox.getHeight());
+            mapComponent.setMaxHeight(sceneHeight-fileChooserHBox.getHeight());
+            mapComponent.setMinHeight(sceneHeight-fileChooserHBox.getHeight());
+            mapComponent.setPrefHeight(sceneHeight-fileChooserHBox.getHeight());
             if(dateColumnVBox.getHeight() > sceneHeight-fileChooserHBox.getHeight()){
                 scrollPane.setPrefWidth(dateColumnVBox.getWidth()+15);
             } else {
@@ -123,6 +136,7 @@ class Layout {
             mapComponent.setPrefWidth(primaryStage.getScene().getWidth()-scrollPane.getMinWidth()-500);
         });
 
+
     }
 
 
@@ -130,11 +144,10 @@ class Layout {
         mainBorderPane.setTop(fileChooserHBox);
         mainBorderPane.setLeft(scrollPane);
         mainBorderPane.setCenter(centerHbox);
-
     }
 
 
-    private void fileChooser(Stage primaryStage) {
+    private void fileChooser() {
         fileChooserHBox.setPrefHeight(20);
         fileChooserHBox.setPrefWidth(Screen.getPrimary().getVisualBounds().getWidth());
         fileChooserHBox.setSpacing(20);
@@ -307,6 +320,8 @@ class Layout {
         preciseDataAndDate.setMinHeight(320);
         preciseDataAndDate.setPrefHeight(320);
         preciseDataAndDate.getStyleClass().add("mainLeftBackground");
+        preciseDataAndDate.getStyleClass().add("borderLine");
+        preciseDataAndDate.setStyle("-fx-border-style: hidden solid solid hidden;");
         preciseDataAndDate.setPadding(new Insets(20, 20, 20, 20));
 
         // color picker
@@ -320,6 +335,7 @@ class Layout {
             Circle tempCircle = (Circle) chartStackPane.getChildren().get(1);
             tempCircle.setFill(colorPicker.getValue());
             chartAlt.changeColorsOfChart(colorPicker.getValue());
+            mapManagement(oneDayDataList.get(currentFrameId));
             });
 
         // charts type
@@ -355,7 +371,6 @@ class Layout {
                 colorPicker.setDisable(true);
             }
         });
-
 
         // charts controls
         GridPane chartsControl = new GridPane();
@@ -397,17 +412,16 @@ class Layout {
         detailedPoint.setPadding(new Insets(2,0,0,0));
 
 
-        VBox forCharts = new VBox(chartStackPane, detailedPoint);
-        forCharts.setAlignment(Pos.CENTER);
+        forCharts.getChildren().addAll(chartStackPane, detailedPoint);
+        forCharts.setAlignment(Pos.TOP_CENTER);
         forCharts.setSpacing(10);
         forCharts.setPadding(new Insets(10, 0, 0, 0));
+        forCharts.getStyleClass().add("borderLine");
+        forCharts.setStyle("-fx-border-style: hidden hidden hidden solid;");
 
-
-        forCharts.setMaxHeight(400);
         forCharts.setMaxWidth(500);
         viewDataVBox.setMaxWidth(500);
         viewDataVBox.getChildren().addAll(preciseAndControl, forCharts);
-        viewDataVBox.setPadding(new Insets(0,5,5,0));
 
         centerHbox = new HBox(viewDataVBox, mapComponent);
 
@@ -416,7 +430,7 @@ class Layout {
     private void chartInteractiveManagement(double mouseXPos) {
         double hoveredX = chartAlt.getChartXFromMousePos(mouseXPos);
         int altFromGivenChartX, hoveredPointIndex;
-        int yOffset = 88;
+        int yOffset = chartAlt.chart.getData().size() > 5 ? 88+24 : 88;
         try {
             ObservableList<XYChart.Data<Number, Number>> chartData = chartAlt.chart.getData().get(chartAlt.chart.getData().size()-1).getData();
             if(chartsType.getValue().equals("Distance") && hoveredX <= chartData.get(chartData.size()-2).getXValue().doubleValue()) {
@@ -470,7 +484,7 @@ class Layout {
                 frame.setImClicked(false);
                 currentFrameId = frameListObs.indexOf(frame);
                 insertDataForDisplay(frame);
-                if(chartAlt.chart.getData().size() <= 7) {
+                if(chartAlt.chart.getData().size() <= 7 && !wasClickedPreviously(frame)) {
                     loadDataToCharts(frame);
                     mapManagement(frame);
                 }
@@ -513,9 +527,21 @@ class Layout {
         }
         // set name of last added chart
         chartAlt.chart.getData().get(chartAlt.chart.getData().size()-1).setName(frame.getDate().toString());
+
+        if(chartAlt.chart.getData().size() > 5) {
+            chartAlt.chart.setMinHeight(385);
+        } else {
+            chartAlt.chart.setMinHeight(361);
+        }
     }
 
 
+    private boolean wasClickedPreviously(OneDayDataWithFrame frame) {
+        for(int i = 0; i < chartAlt.chart.getData().size(); i++) {
+            if(chartAlt.chart.getData().get(i).getName().equals(frame.getDate().toString())) return true;
+        }
+        return false;
+    }
 
 
     static double round(double value) {

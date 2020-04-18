@@ -48,6 +48,8 @@ class MyChart extends AreaChart{
         chart.createSymbolsProperty().setValue(true);
         chart.setCreateSymbols(false);
         chart.setTitle("Chart of altitude versus distance");
+        chart.setMaxHeight(361);
+        chart.setMinHeight(361);
 
         XYChart.Series<Number, Number> tempChartData = new XYChart.Series<>();
         tempChartData.getData().add(new XYChart.Data<>(0,0));
