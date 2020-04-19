@@ -71,7 +71,7 @@ class OneDayDataWithFrame extends SingleDayStats{
         }
 
         wholeFrameStats.setOnMouseExited(mouseEvent -> {
-            if(!wholeFrameStats.getStyleClass().get(0).equals("frameClicked")) {
+            if(!wholeFrameStats.getStyleClass().get(0).equals("frameClicked") && !wholeFrameStats.getStyleClass().get(0).equals("frameWasClicked")) {
                 if (normalColorStyle) {
                     wholeFrameStats.getStyleClass().set(0, "frameBlue");
                 } else {
@@ -82,7 +82,7 @@ class OneDayDataWithFrame extends SingleDayStats{
 
 
         wholeFrameStats.setOnMouseEntered(mouseEvent -> {
-            if(!wholeFrameStats.getStyleClass().get(0).equals("frameClicked")) {
+            if(!wholeFrameStats.getStyleClass().get(0).equals("frameClicked") && !wholeFrameStats.getStyleClass().get(0).equals("frameWasClicked")) {
                 wholeFrameStats.getStyleClass().set(0, "frameEntered");
             }
         });

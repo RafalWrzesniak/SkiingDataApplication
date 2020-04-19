@@ -29,8 +29,14 @@
 
 .frameClicked {
     -fx-border-width: 4;
-    -fx-border-color: red;
+    -fx-border-color: lightsalmon    ;
     -fx-background-color: deepskyblue;
+}
+
+.frameWasClicked {
+    -fx-border-width: 4;
+    -fx-border-color: indianred ;
+    -fx-background-color: skyblue;
 }
 
 .mainLeftBackground {

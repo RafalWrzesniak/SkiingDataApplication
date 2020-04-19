@@ -18,10 +18,12 @@ class MyChart extends AreaChart{
 
     private final List<Color> colors = List.of(Color.ORANGERED, Color.MEDIUMVIOLETRED, Color.LIGHTSALMON, Color.DARKVIOLET, Color.AQUAMARINE, Color.FIREBRICK, Color.MEDIUMPURPLE);
     private List<Color> colorsTemp = new ArrayList<>();
-    private NumberAxis xAxis;
-    private NumberAxis yAxis;
     private static double maxXValue = 0;
     private static double maxYValue = 0;
+    static final String DISTANCE = "Distance";
+    static final String TIME = "Time";
+    private NumberAxis xAxis;
+    private NumberAxis yAxis;
     AreaChart<Number, Number> chart;
 
     MyChart(NumberAxis xAxis, NumberAxis yAxis) {
@@ -57,7 +59,7 @@ class MyChart extends AreaChart{
         chart.getData().add(tempChartData);
         changeColorsOfChart(Color.ROYALBLUE);
         setYaxisLabel();
-        setXaxisLabel("Distance");
+        setXaxisLabel(MyChart.DISTANCE);
         colorsTemp.addAll(colors);
     }
 
@@ -161,7 +163,7 @@ class MyChart extends AreaChart{
 
 
     void setXaxisLabel(String name) {
-        this.xAxis.setLabel(String.join(" ", name, name.equals("Distance") ? "[km]" : "[h]"));
+        this.xAxis.setLabel(String.join(" ", name, name.equals(MyChart.DISTANCE) ? "[km]" : "[h]"));
     }
 
     private void setYaxisLabel() {
@@ -213,6 +215,10 @@ class MyChart extends AreaChart{
             changeColorsOfChart(color);
         }));
 
+        moveXdataIntoChart.setCycleCount((int) size);
+        moveXdataIntoChart.setOnFinished((actionEvent -> moveYdataIntoChart.play()));
+        moveXdataIntoChart.play();
+
         moveYdataIntoChart.setCycleCount((int) size);
         moveYdataIntoChart.setOnFinished(actionEvent -> {
             for(int i = 0; i < axisData.getData().size(); i++) {
@@ -224,13 +230,10 @@ class MyChart extends AreaChart{
             changeColorsOfChart(color);
         });
 
-        moveXdataIntoChart.setCycleCount((int) size);
-        moveXdataIntoChart.setOnFinished((actionEvent -> moveYdataIntoChart.play()));
-        moveXdataIntoChart.play();
     }
 
 
-    double getChartXFromMousePos(double mouseXPos) {
+    double getChartXFromMousePos(double mouseXPos, int seriesNumber) {
         double xAxisWidth = xAxis.getWidth();
         double xAxisTickUnit = xAxis.getTickUnit();
         double tickInPx = xAxisWidth/xAxisTickUnit;
@@ -242,7 +245,7 @@ class MyChart extends AreaChart{
             currentCursorXPos = Layout.round((mouseXPos-72) / tickInPx*numberOfTicks);
         }
 
-        ObservableList<Data<Number, Number>> chartData = chart.getData().get(chart.getData().size()-1).getData();
+        ObservableList<Data<Number, Number>> chartData = chart.getData().get(seriesNumber).getData();
         double precise;
         if(chartData.get(chartData.size()-1).getXValue().doubleValue() > 10) {
             precise = 0.1;

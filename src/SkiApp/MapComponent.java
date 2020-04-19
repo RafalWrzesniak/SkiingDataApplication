@@ -41,13 +41,17 @@ class MapComponent extends StackPane {
         webEngine.executeScript(name2.replace(' ', '_') + ".bindPopup('<b><center>" + name + "</center></b>" + name3 + "<br>" + name2 + "')");
     }
 
-    void addCircle(TrackPoint trackPoint, String color) {
-        webEngine.executeScript("var circle = L.circle([" + trackPoint.getLat() + ", " +  trackPoint.getLon() + "], " +
+    void addCircle(TrackPoint trackPoint, String color, String name) {
+        name = "circle_" + name;
+        name = name.replace('-', '_');
+        webEngine.executeScript("var " + name + " = L.circle([" + trackPoint.getLat() + ", " +  trackPoint.getLon() + "], " +
                 "{color: '" + color + "', fillColor: 'white', fillOpacity: 0.8, radius: 120}).addTo(myMap);");
     }
 
-    void moveCircle(TrackPoint trackPoint) {
-        webEngine.executeScript("circle.setLatLng([" + trackPoint.getLat() + ", " + trackPoint.getLon() + "])");
+    void moveCircle(TrackPoint trackPoint, String name) {
+        name = "circle_" + name;
+        name = name.replace('-', '_');
+        webEngine.executeScript(name + ".setLatLng([" + trackPoint.getLat() + ", " + trackPoint.getLon() + "])");
     }
 
 

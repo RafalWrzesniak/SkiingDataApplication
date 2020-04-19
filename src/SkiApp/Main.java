@@ -1,8 +1,10 @@
 package SkiApp;
 
+import javafx.animation.PauseTransition;
 import javafx.application.Application;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Group;
@@ -12,8 +14,10 @@ import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
+import javafx.scene.paint.Paint;
 import javafx.scene.shape.Circle;
 import javafx.stage.*;
+import javafx.util.Duration;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -31,8 +35,8 @@ public class Main extends Application {
         Scene scene = new Scene(root, 1270, 800, Color.WHITE);
         scene.getStylesheets().add("");
         scene.getStylesheets().set(0, "/styles.css");
-        primaryStage.setMinWidth(1070);
-        primaryStage.setMinHeight(480);
+        primaryStage.setMinWidth(570);
+        primaryStage.setMinHeight(400);
         Layout layout = new Layout(primaryStage);
         primaryStage.getIcons().add(new Image(getClass().getResourceAsStream("/skiIcon.png") ));
         primaryStage.setScene(scene);
@@ -61,6 +65,7 @@ class Layout {
     private GridPane preciseData = new GridPane();
     private HBox centerHbox = new HBox();
     private VBox forCharts = new VBox();
+    private StackPane chartStackPane = new StackPane();
 
     private ObservableList<OneDayDataWithFrame> oneDayDataList = FXCollections.observableArrayList();
 
@@ -70,9 +75,7 @@ class Layout {
     private Boolean isFullScreen = false;
     private ColorPicker colorPicker = new ColorPicker();
     private CheckBox keepChartsCheckBox;
-    private StackPane chartStackPane = new StackPane();
     private Label detailedPoint;
-
     private Stage primaryStage;
 
     Layout(Stage primaryStage) {
@@ -136,7 +139,7 @@ class Layout {
             mapComponent.setPrefWidth(primaryStage.getScene().getWidth()-scrollPane.getMinWidth()-500);
         });
 
-
+        resizeWindowToFixLayout();
     }
 
 
@@ -205,13 +208,17 @@ class Layout {
             }
 
             chosenFileLabel.setText(chosenFiles.toString());
-//            chosenFileLabel.setText(chosenFileLabel.getText() + ", " + xmlFIle.toString());
         }
 
         insertContentToScrollPane(oneDayDataList);
         chosenFileLabel.setStyle("-fx-border-color: limegreen; -fx-background-color: white; -fx-border-width: 3");
+        if(keepChartsCheckBox.isSelected()) {
+            currentFrameId = 0;
+            keepChartsCheckBox.setSelected(false);
+        } else {
         oneDayDataList.get(0).setImClicked(true);
         colorFramesAndDisplayData(oneDayDataList);
+        }
     }
 
     private ObservableList<File> chooseFileDialog(Stage primaryStage) {
@@ -342,9 +349,9 @@ class Layout {
         Label chartsTypeLabel = new Label("Charts type:");
         chartsTypeLabel.setPrefWidth(105);
         chartsTypeLabel.setAlignment(Pos.CENTER);
-        chartsType = new ComboBox<>(FXCollections.observableArrayList("Distance", "Time"));
+        chartsType = new ComboBox<>(FXCollections.observableArrayList(MyChart.DISTANCE, MyChart.TIME));
         chartsType.setPrefWidth(105);
-        chartsType.setValue("Distance");
+        chartsType.setValue(MyChart.DISTANCE);
         chartsType.setOnAction(actionEvent -> {
             chartAlt.setXaxisLabel(chartsType.getValue());
             chartAlt.chart.setTitle("Chart of altitude versus " + chartsType.getValue().toLowerCase());
@@ -361,9 +368,8 @@ class Layout {
         keepChartsCheckBox.selectedProperty().addListener((observableValue, aBoolean, t1) -> {
             if(!keepChartsCheckBox.isSelected()) {
                 chartAlt.chart.getData().clear();
-                insertDataForDisplay(oneDayDataList.get(currentFrameId));
-                loadDataToCharts(oneDayDataList.get(currentFrameId));
-                mapManagement(oneDayDataList.get(currentFrameId));
+                oneDayDataList.get(currentFrameId).setImClicked(true);
+                colorFramesAndDisplayData(oneDayDataList);
                 chartsType.setDisable(false);
                 colorPicker.setDisable(false);
             } else {
@@ -428,14 +434,20 @@ class Layout {
     }
 
     private void chartInteractiveManagement(double mouseXPos) {
-        double hoveredX = chartAlt.getChartXFromMousePos(mouseXPos);
+        int currentDataSeries = 0;
+        for (int i = 0; i < chartAlt.chart.getData().size(); i++) {
+            if(currentFrameId != -1 && chartAlt.chart.getData().get(i).getName().equals(oneDayDataList.get(currentFrameId).getDate().toString())) {
+                currentDataSeries = i;
+            }
+        }
+        double hoveredX = chartAlt.getChartXFromMousePos(mouseXPos, currentDataSeries);
         int altFromGivenChartX, hoveredPointIndex;
         int yOffset = chartAlt.chart.getData().size() > 5 ? 88+24 : 88;
         try {
-            ObservableList<XYChart.Data<Number, Number>> chartData = chartAlt.chart.getData().get(chartAlt.chart.getData().size()-1).getData();
-            if(chartsType.getValue().equals("Distance") && hoveredX <= chartData.get(chartData.size()-2).getXValue().doubleValue()) {
+            ObservableList<XYChart.Data<Number, Number>> chartData = chartAlt.chart.getData().get(currentDataSeries).getData();
+            if(chartsType.getValue().equals(MyChart.DISTANCE) && hoveredX <= chartData.get(chartData.size()-2).getXValue().doubleValue()) {
                 hoveredPointIndex = oneDayDataList.get(currentFrameId).getDistanceArray().indexOf(hoveredX);
-            } else if(chartsType.getValue().equals("Time") && hoveredX <= chartData.get(chartData.size()-2).getXValue().doubleValue()) {
+            } else if(chartsType.getValue().equals(MyChart.TIME) && hoveredX <= chartData.get(chartData.size()-2).getXValue().doubleValue()) {
                 hoveredPointIndex = oneDayDataList.get(currentFrameId).getTimeArray().indexOf(hoveredX);
             } else return;
             altFromGivenChartX = (int) oneDayDataList.get(currentFrameId).getAllUsedPoints().get(hoveredPointIndex).getAlt();
@@ -443,6 +455,11 @@ class Layout {
                 chartStackPane.getChildren().get(1).setTranslateX((mouseXPos - chartStackPane.getWidth() / 2));
                 chartStackPane.getChildren().get(1).setTranslateY((chartStackPane.getHeight() / 2)-yOffset - chartAlt.convertAltToPx(altFromGivenChartX));
             }
+            //change circle color
+            Circle tempCircle = (Circle) chartStackPane.getChildren().get(1);
+            String currentColor = chartAlt.chart.getData().get(currentDataSeries).getNode().lookup(".chart-series-area-line").getStyle();
+            currentColor = currentColor.substring(currentColor.indexOf('#'), currentColor.indexOf("ff;"));
+            tempCircle.setFill(Paint.valueOf(currentColor));
             // set label
             detailedPoint.setText(String.format(chartsType.getValue() +  ": %.1f, Altitude: %.0f, (Lat, Lon): (%.2f, %.2f)",
                     chartData.get(hoveredPointIndex).getXValue().doubleValue(),
@@ -450,7 +467,7 @@ class Layout {
                     oneDayDataList.get(currentFrameId).getAllUsedPoints().get(hoveredPointIndex).getLat(),
                     oneDayDataList.get(currentFrameId).getAllUsedPoints().get(hoveredPointIndex).getLon()));
 
-            mapComponent.moveCircle(oneDayDataList.get(currentFrameId).getAllUsedPoints().get(hoveredPointIndex));
+            mapComponent.moveCircle(oneDayDataList.get(currentFrameId).getAllUsedPoints().get(hoveredPointIndex), oneDayDataList.get(currentFrameId).getDate().toString());
         } catch(IndexOutOfBoundsException ignored) {}
     }
 
@@ -479,6 +496,10 @@ class Layout {
                 frame.getFrameStats().getStyleClass().set(0, "frameYellow");
             }
 
+            if(wasClickedPreviously(frame) && keepChartsCheckBox.isSelected()) {
+                frame.getFrameStats().getStyleClass().set(0, "frameWasClicked");
+            }
+
             if(frame.isImClicked()) {
                 frame.getFrameStats().getStyleClass().set(0, "frameClicked");
                 frame.setImClicked(false);
@@ -500,7 +521,7 @@ class Layout {
         currentColor = currentColor.substring(currentColor.indexOf('#'), currentColor.indexOf("ff;"));
         mapComponent.createTrack(frame.getAllUsedPoints(), currentColor);
         mapComponent.addMarker(frame.getAllUsedPoints().get(frame.getAltArray().indexOf(frame.getMaxAlt())), String.valueOf((int) frame.getMaxAlt()), "Max altitude", frame.getDate().toString());
-        mapComponent.addCircle(frame.getAllUsedPoints().get(0), currentColor);
+        mapComponent.addCircle(frame.getAllUsedPoints().get(0), currentColor, frame.getDate().toString());
     }
 
 
@@ -511,17 +532,17 @@ class Layout {
         double lastxDist = frame.getDistanceArray().get(frame.getDistanceArray().size()-1);
         double lastxTime = frame.getTimeArray().get(frame.getTimeArray().size()-1);
 
-        if (chartsType.getValue().equals("Distance")) {
+        if (chartsType.getValue().equals(MyChart.DISTANCE)) {
             for(int i = 0; i < chartAlt.chart.getData().size(); i++) {
                 double lastx = chartAlt.chart.getData().get(i).getData().get(chartAlt.chart.getData().get(i).getData().size()-1).getXValue().doubleValue();
-                if(chartAlt.chart.getData().get(i).getName().equals(frame.getDate().toString()) && lastx == lastxDist) return;
+                if(lastx == lastxDist) return;
             }
             chartAlt.loadData(frame.getDistanceArray(), frame.getAltArray(), colorPicker.getValue(), keepChartsCheckBox.isSelected());
 
-        } else if (chartsType.getValue().equals("Time")) {
+        } else if (chartsType.getValue().equals(MyChart.TIME)) {
             for(int i = 0; i < chartAlt.chart.getData().size(); i++) {
                 double lastx = chartAlt.chart.getData().get(i).getData().get(chartAlt.chart.getData().get(i).getData().size()-1).getXValue().doubleValue();
-                if(chartAlt.chart.getData().get(i).getName().equals(frame.getDate().toString()) && lastx == lastxTime) return;
+                if(lastx == lastxTime) return;
             }
             chartAlt.loadData(frame.getTimeArray(), frame.getShortAltByTimeArray(), colorPicker.getValue(), keepChartsCheckBox.isSelected());
         }
@@ -548,6 +569,19 @@ class Layout {
         value = value * 100;
         value = Math.round(value);
         return value/100;
+    }
+
+
+    private void resizeWindowToFixLayout() {
+        PauseTransition fixWindow = new PauseTransition(Duration.millis(250));
+        fixWindow.setOnFinished((ActionEvent e) -> {
+            primaryStage.setWidth(primaryStage.getWidth()+1);
+            primaryStage.setHeight(primaryStage.getHeight()+1);
+            primaryStage.setWidth(primaryStage.getWidth()-1);
+            primaryStage.setHeight(primaryStage.getHeight()-1);
+            fixWindow.playFromStart();
+        });
+        fixWindow.play();
     }
 
 
