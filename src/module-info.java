@@ -9,6 +9,8 @@ module SkiingData {
     requires slf4j.api;
     requires jaxb.api;
     requires kotlin.stdlib;
+    requires org.junit.jupiter.api;
+    requires org.junit.jupiter.params;
 
 
     opens SkiApp;
