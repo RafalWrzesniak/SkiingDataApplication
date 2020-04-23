@@ -12,7 +12,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.IOException;
 
-class GPXparser {
+public class GPXparser {
 
     private File inputFile;
     private Document doc;
@@ -20,8 +20,14 @@ class GPXparser {
     private NodeList altList;
     private NodeList timeList;
 
-    GPXparser(File inputFile) throws IOException, SAXException, ParserConfigurationException {
-        this.inputFile = inputFile;
+    public GPXparser(File inputFile) throws IOException, SAXException, ParserConfigurationException {
+        if(inputFile == null) {
+            throw new IllegalArgumentException("Input file cannot be null!");
+        } else if(!inputFile.toString().endsWith(".gpx")) {
+            throw new IllegalArgumentException("Wrong input file extension! Should be: .gpx, found: " + inputFile.toString().substring(inputFile.toString().indexOf('.'))) {};
+        } else {
+            this.inputFile = inputFile;
+        }
         this.doc = createDocUsingDOMparser();
     }
 
@@ -45,7 +51,7 @@ class GPXparser {
         return new TrackPoint(lat, lon, alt, time);
     }
 
-    ObservableList<TrackPoint> parseXMLtoTrackPointList() throws Exception {
+    public ObservableList<TrackPoint> parseXMLtoTrackPointList() throws Exception {
         this.trkptList = doc.getElementsByTagName("trkpt");
         this.altList = doc.getElementsByTagName("ele");
         this.timeList = doc.getElementsByTagName("time");
@@ -53,11 +59,13 @@ class GPXparser {
         if(trkptList.getLength() == altList.getLength() && trkptList.getLength() == timeList.getLength()) {
             ObservableList<TrackPoint> trackPointList = FXCollections.observableArrayList();
             for (int idXML = 0; idXML < trkptList.getLength(); idXML++) {
-                trackPointList.add(createTrackPoint(idXML));
+                try {
+                    trackPointList.add(createTrackPoint(idXML));
+                } catch (IllegalArgumentException ignored) {}
             }
             return trackPointList;
         } else {
-            throw new Exception("GPX file is incorrect");
+            throw new Exception("Mismatch in .input file - different amount of gps coordinates, altitudes and time");
         }
     }
 

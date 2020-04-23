@@ -6,7 +6,7 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
-class SingleDayStats {
+public class SingleDayStats {
 
     private ObservableList<Double> shortDistanceArray = FXCollections.observableArrayList();
     private ObservableList<Double> shortAltByDistArray = FXCollections.observableArrayList();
@@ -19,9 +19,10 @@ class SingleDayStats {
     private String timeDown, timeUp, timeRest;
     private int downhill, uphill;
     private LocalTime totalTime;
-    private LocalDate date;
+    private final LocalDate date;
 
-    SingleDayStats(ObservableList<TrackPoint> allTrackedPoints) {
+    public SingleDayStats(ObservableList<TrackPoint> allTrackedPoints) {
+        if(allTrackedPoints == null) throw new IllegalArgumentException("Input argument cannot be null!");
         this.date = allTrackedPoints.get(0).getDate();
         createArrays(allTrackedPoints);
         calcTotalTime(allTrackedPoints);
@@ -197,7 +198,8 @@ class SingleDayStats {
     }
 
 
-    static ObservableList<ObservableList<TrackPoint>> divideAllPointsToDays(ObservableList<TrackPoint> allPoints) {
+    public static ObservableList<ObservableList<TrackPoint>> divideAllPointsToDays(ObservableList<TrackPoint> allPoints) {
+        if(allPoints == null) throw new IllegalArgumentException("Input list cannot be null!");
         ObservableList<ObservableList<TrackPoint>> singleDayPointsList = FXCollections.observableArrayList();
         ObservableList<TrackPoint> singleDayPoints = FXCollections.observableArrayList();
         for (TrackPoint point: allPoints) {
@@ -217,71 +219,71 @@ class SingleDayStats {
         return singleDayPointsList;
     }
 
-    double getTotalDistance() {
+    public double getTotalDistance() {
         return totalDistance;
     }
 
-    LocalTime getTotalTime() {
+    public LocalTime getTotalTime() {
         return totalTime;
     }
 
-    double getDistDown() {
+    public double getDistDown() {
         return distDown;
     }
 
-    double getDistUp() {
+    public double getDistUp() {
         return distUp;
     }
 
-    LocalDate getDate() {
+    public LocalDate getDate() {
         return date;
     }
 
-    double getMaxSpeed() {
+    public double getMaxSpeed() {
         return maxSpeed;
     }
 
-    double getMaxAlt() {
+    public double getMaxAlt() {
         return maxAlt;
     }
 
-    double getMinAlt() {
+    public double getMinAlt() {
         return minAlt;
     }
 
-    double getAvgSpeed() {
+    public double getAvgSpeed() {
         return avgSpeed;
     }
 
-    String getTimeDown() {
+    public String getTimeDown() {
         return timeDown;
     }
 
-    String getTimeUp() {
+    public String getTimeUp() {
         return timeUp;
     }
 
-    String getTimeRest() {
+    public String getTimeRest() {
         return timeRest;
     }
 
-    int getDownhill() {
+    public int getDownhill() {
         return downhill;
     }
 
-    int getUphill() {
+    public int getUphill() {
         return uphill;
     }
 
-    double getAltDown() {
+    public double getAltDown() {
         return altDown;
     }
 
-    double getAltUp() {
+    public double getAltUp() {
         return altUp;
     }
 
-    ObservableList<Double> getShortAltByTimeArray() {
+    public ObservableList<Double> getShortAltByTimeArray() {
         return shortAltByTimeArray;
     }
 
@@ -290,11 +292,11 @@ class SingleDayStats {
     }
 
 
-    ObservableList<Double> getAltArray() {
+    public ObservableList<Double> getAltArray() {
         return shortAltByDistArray;
     }
 
-    ObservableList<Double> getDistanceArray() {
+    public ObservableList<Double> getDistanceArray() {
         return shortDistanceArray;
     }
 

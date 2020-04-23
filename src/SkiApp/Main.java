@@ -202,8 +202,8 @@ class Layout {
                     }
                 }
             } catch (Exception e) {
-                e.printStackTrace();
-                System.out.println("Errors in GPX file");
+//                e.printStackTrace();
+                System.out.println("Mismatch in .input file - different amount of gps coordinates, altitudes and time");
                 return;
             }
 
