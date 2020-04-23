@@ -56,27 +56,27 @@ public class Main extends Application {
 class Layout {
 
     BorderPane mainBorderPane = new BorderPane();
-    private HBox fileChooserHBox = new HBox();
-    private VBox dateColumnVBox = new VBox();
-    private VBox viewDataVBox = new VBox();
-    private ScrollPane scrollPane = new ScrollPane();
-    private MapComponent mapComponent = new MapComponent();
-    private HBox dateBox = new HBox();
-    private GridPane preciseData = new GridPane();
+    private final HBox fileChooserHBox = new HBox();
+    private final VBox dateColumnVBox = new VBox();
+    private final VBox viewDataVBox = new VBox();
+    private final ScrollPane scrollPane = new ScrollPane();
+    private final MapComponent mapComponent = new MapComponent();
+    private final HBox dateBox = new HBox();
+    private final GridPane preciseData = new GridPane();
     private HBox centerHbox = new HBox();
-    private VBox forCharts = new VBox();
-    private StackPane chartStackPane = new StackPane();
+    private final VBox forCharts = new VBox();
+    private final StackPane chartStackPane = new StackPane();
 
-    private ObservableList<OneDayDataWithFrame> oneDayDataList = FXCollections.observableArrayList();
+    private final ObservableList<OneDayDataWithFrame> oneDayDataList = FXCollections.observableArrayList();
 
     private MyChart chartAlt;
     private ComboBox<String> chartsType;
     private int currentFrameId = -1;
     private Boolean isFullScreen = false;
-    private ColorPicker colorPicker = new ColorPicker();
+    private final ColorPicker colorPicker = new ColorPicker();
     private CheckBox keepChartsCheckBox;
     private Label detailedPoint;
-    private Stage primaryStage;
+    private final Stage primaryStage;
 
     Layout(Stage primaryStage) {
         this.primaryStage = primaryStage;
