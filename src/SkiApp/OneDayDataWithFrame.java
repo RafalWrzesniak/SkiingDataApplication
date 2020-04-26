@@ -12,8 +12,8 @@ import javafx.scene.layout.VBox;
 class OneDayDataWithFrame extends SingleDayStats{
 
     private boolean imClicked = false;
-    private boolean normalColorStyle;
-    private VBox wholeFrameStats;
+    private final boolean normalColorStyle;
+    private final VBox wholeFrameStats;
 
     OneDayDataWithFrame(ObservableList<TrackPoint> allTrackedPoints, boolean normalColorStyle) {
         super(allTrackedPoints);

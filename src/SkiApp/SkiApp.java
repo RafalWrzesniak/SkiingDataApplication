@@ -9,14 +9,18 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Group;
 import javafx.scene.Scene;
-import javafx.scene.chart.*;
+import javafx.scene.chart.NumberAxis;
+import javafx.scene.chart.XYChart;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Circle;
-import javafx.stage.*;
+import javafx.stage.FileChooser;
+import javafx.stage.Screen;
+import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
 import javafx.util.Duration;
 import org.xml.sax.SAXException;
 
@@ -26,8 +30,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-
-public class Main extends Application {
+public class SkiApp extends Application {
 
     @Override
     public void start(Stage primaryStage) {
@@ -204,6 +207,7 @@ class Layout {
             } catch (Exception e) {
 //                e.printStackTrace();
                 System.out.println("Mismatch in .input file - different amount of gps coordinates, altitudes and time");
+                chosenFileLabel.setText("Incorrect input file!");
                 return;
             }
 
