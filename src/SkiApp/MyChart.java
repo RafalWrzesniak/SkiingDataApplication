@@ -16,14 +16,14 @@ import java.util.List;
 
 class MyChart extends AreaChart{
 
-    private final List<Color> colors = List.of(Color.ORANGERED, Color.MEDIUMVIOLETRED, Color.LIGHTSALMON, Color.DARKVIOLET, Color.AQUAMARINE, Color.FIREBRICK, Color.MEDIUMPURPLE);
-    private List<Color> colorsTemp = new ArrayList<>();
+    private final List<Color> colors = List.of(Color.DARKVIOLET, Color.LIGHTSALMON, Color.RED, Color.MAGENTA, Color.AQUAMARINE, Color.BLACK, Color.GREEN);
+    private final List<Color> colorsTemp = new ArrayList<>();
     private static double maxXValue = 0;
     private static double maxYValue = 0;
     static final String DISTANCE = "Distance";
     static final String TIME = "Time";
-    private NumberAxis xAxis;
-    private NumberAxis yAxis;
+    private final NumberAxis xAxis;
+    private final NumberAxis yAxis;
     AreaChart<Number, Number> chart;
 
     MyChart(NumberAxis xAxis, NumberAxis yAxis) {

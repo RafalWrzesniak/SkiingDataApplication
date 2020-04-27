@@ -44,7 +44,6 @@
         <SOURCES />
       </library>
     </orderEntry>
-    <orderEntry type="library" name="javafx.base" level="project" />
-    <orderEntry type="library" name="javafx.fxml" level="project" />
+    <orderEntry type="library" name="JavaFX" level="project" />
   </component>
 </module>

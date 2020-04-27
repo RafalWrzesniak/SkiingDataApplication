@@ -131,15 +131,15 @@ class Layout {
             mapComponent.setPrefHeight(sceneHeight-fileChooserHBox.getHeight());
             if(dateColumnVBox.getHeight() > sceneHeight-fileChooserHBox.getHeight()){
                 scrollPane.setPrefWidth(dateColumnVBox.getWidth()+15);
+                mapComponent.setMaxWidth(primaryStage.getScene().getWidth()-scrollPane.getMinWidth()-510);
+                mapComponent.setMinWidth(primaryStage.getScene().getWidth()-scrollPane.getMinWidth()-510);
+                mapComponent.setPrefWidth(primaryStage.getScene().getWidth()-scrollPane.getMinWidth()-510);
             } else {
                 scrollPane.setPrefWidth(dateColumnVBox.getWidth()+5);
+                mapComponent.setMaxWidth(primaryStage.getScene().getWidth()-scrollPane.getMinWidth()-500);
+                mapComponent.setMinWidth(primaryStage.getScene().getWidth()-scrollPane.getMinWidth()-500);
+                mapComponent.setPrefWidth(primaryStage.getScene().getWidth()-scrollPane.getMinWidth()-500);
             }
-        });
-
-        primaryStage.getScene().widthProperty().addListener((obs, oldVal, newVal) -> {
-            mapComponent.setMaxWidth(primaryStage.getScene().getWidth()-scrollPane.getMinWidth()-500);
-            mapComponent.setMinWidth(primaryStage.getScene().getWidth()-scrollPane.getMinWidth()-500);
-            mapComponent.setPrefWidth(primaryStage.getScene().getWidth()-scrollPane.getMinWidth()-500);
         });
 
         resizeWindowToFixLayout();
@@ -176,68 +176,6 @@ class Layout {
         fileChooserHBox.getChildren().addAll(chooseFileButton, chosenFileLabel);
     }
 
-    private void fileWasChosen(Stage primaryStage, Label chosenFileLabel) {
-        ObservableList<File> chosenFiles = chooseFileDialog(primaryStage);
-        if(chosenFiles.size() == 0) return;
-
-        for(File xmlFIle: chosenFiles) {
-            GPXparser gpXparser;
-            try {
-                gpXparser = new GPXparser(xmlFIle);
-            } catch (IllegalArgumentException | IOException | ParserConfigurationException | SAXException e) {
-//            e.printStackTrace();
-                return;
-            }
-
-            try {
-                ObservableList<TrackPoint> allTrackedPoints = gpXparser.parseXMLtoTrackPointList();
-                ObservableList<ObservableList<TrackPoint>> dayList = SingleDayStats.divideAllPointsToDays(allTrackedPoints);
-                if(chosenFiles.indexOf(xmlFIle) == 0) {
-                    dateColumnVBox.getChildren().clear();
-                    oneDayDataList.clear();
-                    currentFrameId = -1;
-                }
-                for (int i = 0; i < dayList.size(); i++) {
-                    if (i % 2 == 0) {
-                        oneDayDataList.add(new OneDayDataWithFrame(dayList.get(i), true));
-                    } else {
-                        oneDayDataList.add(new OneDayDataWithFrame(dayList.get(i), false));
-                    }
-                }
-            } catch (Exception e) {
-//                e.printStackTrace();
-                System.out.println("Mismatch in .input file - different amount of gps coordinates, altitudes and time");
-                chosenFileLabel.setText("Incorrect input file!");
-                return;
-            }
-
-            chosenFileLabel.setText(chosenFiles.toString());
-        }
-
-        insertContentToScrollPane(oneDayDataList);
-        chosenFileLabel.setStyle("-fx-border-color: limegreen; -fx-background-color: white; -fx-border-width: 3");
-        if(keepChartsCheckBox.isSelected()) {
-            currentFrameId = 0;
-            keepChartsCheckBox.setSelected(false);
-        } else {
-        oneDayDataList.get(0).setImClicked(true);
-        colorFramesAndDisplayData(oneDayDataList);
-        }
-    }
-
-    private ObservableList<File> chooseFileDialog(Stage primaryStage) {
-        FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Open your GPX file");
-        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("GPX Files", "*.gpx"));
-        List<File> fileList;
-        fileList =  fileChooser.showOpenMultipleDialog(primaryStage);
-        ObservableList<File> listToReturn = FXCollections.observableArrayList();
-        try {
-            listToReturn.addAll(fileList);
-        } catch (NullPointerException ignored) {}
-        return listToReturn;
-    }
-
     private void dateColumn() {
         dateColumnVBox.getStyleClass().add("mainLeftBackground");
         dateColumnVBox.setSpacing(3);
@@ -248,14 +186,6 @@ class Layout {
         scrollPane.vbarPolicyProperty().setValue(ScrollPane.ScrollBarPolicy.AS_NEEDED);
         scrollPane.setMaxHeight(Screen.getPrimary().getVisualBounds().getHeight());
         scrollPane.getStyleClass().add("mainLeftBackground");
-    }
-
-
-    private void insertContentToScrollPane(ObservableList<OneDayDataWithFrame> oneDayDataList) {
-        for (OneDayDataWithFrame frame : oneDayDataList) {
-            dateColumnVBox.getChildren().add(frame.getFrameStats());
-        }
-        scrollPane.setContent(dateColumnVBox);
     }
 
     private void center() {
@@ -333,7 +263,7 @@ class Layout {
         preciseDataAndDate.getStyleClass().add("mainLeftBackground");
         preciseDataAndDate.getStyleClass().add("borderLine");
         preciseDataAndDate.setStyle("-fx-border-style: hidden solid solid hidden;");
-        preciseDataAndDate.setPadding(new Insets(20, 20, 20, 20));
+        preciseDataAndDate.setPadding(new Insets(15, 20, 15, 20));
 
         // color picker
         Label chartsColor = new Label("Charts color:");
@@ -437,6 +367,104 @@ class Layout {
 
     }
 
+
+    // Controlers methods
+    private void fileWasChosen(Stage primaryStage, Label chosenFileLabel) {
+        ObservableList<File> chosenFiles = chooseFileDialog(primaryStage);
+        if(chosenFiles.size() == 0) return;
+
+        for(File xmlFIle: chosenFiles) {
+            GPXparser gpXparser;
+            try {
+                gpXparser = new GPXparser(xmlFIle);
+            } catch (IllegalArgumentException | IOException | ParserConfigurationException | SAXException e) {
+//            e.printStackTrace();
+                return;
+            }
+
+            try {
+                ObservableList<TrackPoint> allTrackedPoints = gpXparser.parseXMLtoTrackPointList();
+                ObservableList<ObservableList<TrackPoint>> dayList = SingleDayStats.divideAllPointsToDays(allTrackedPoints);
+                if(chosenFiles.indexOf(xmlFIle) == 0) {
+                    dateColumnVBox.getChildren().clear();
+                    oneDayDataList.clear();
+                    currentFrameId = -1;
+                }
+                for (int i = 0; i < dayList.size(); i++) {
+                    if (i % 2 == 0) {
+                        oneDayDataList.add(new OneDayDataWithFrame(dayList.get(i), true));
+                    } else {
+                        oneDayDataList.add(new OneDayDataWithFrame(dayList.get(i), false));
+                    }
+                }
+            } catch (Exception e) {
+//                e.printStackTrace();
+                System.out.println("Mismatch in .input file - different amount of gps coordinates, altitudes and time");
+                chosenFileLabel.setText("Incorrect input file!");
+                return;
+            }
+
+            chosenFileLabel.setText(chosenFiles.toString());
+        }
+
+        insertContentToScrollPane(oneDayDataList);
+        chosenFileLabel.setStyle("-fx-border-color: limegreen; -fx-background-color: white; -fx-border-width: 3");
+        if(keepChartsCheckBox.isSelected()) {
+            currentFrameId = 0;
+            keepChartsCheckBox.setSelected(false);
+        } else {
+            oneDayDataList.get(0).setImClicked(true);
+            colorFramesAndDisplayData(oneDayDataList);
+        }
+    }
+
+    private ObservableList<File> chooseFileDialog(Stage primaryStage) {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Open your GPX file");
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("GPX Files", "*.gpx"));
+        List<File> fileList;
+        fileList =  fileChooser.showOpenMultipleDialog(primaryStage);
+        ObservableList<File> listToReturn = FXCollections.observableArrayList();
+        try {
+            listToReturn.addAll(fileList);
+        } catch (NullPointerException ignored) {}
+        return listToReturn;
+    }
+
+
+    private void insertContentToScrollPane(ObservableList<OneDayDataWithFrame> oneDayDataList) {
+        for (OneDayDataWithFrame frame : oneDayDataList) {
+            dateColumnVBox.getChildren().add(frame.getFrameStats());
+        }
+        scrollPane.setContent(dateColumnVBox);
+    }
+
+
+    private void colorFramesAndDisplayData(ObservableList<OneDayDataWithFrame> frameListObs) {
+        for (OneDayDataWithFrame frame : frameListObs) {
+            if(frame.isNormalColorStyle()){
+                frame.getFrameStats().getStyleClass().set(0, "frameBlue");
+            } else {
+                frame.getFrameStats().getStyleClass().set(0, "frameYellow");
+            }
+
+            if(wasClickedPreviously(frame) && keepChartsCheckBox.isSelected()) {
+                frame.getFrameStats().getStyleClass().set(0, "frameWasClicked");
+            }
+
+            if(frame.isImClicked()) {
+                frame.getFrameStats().getStyleClass().set(0, "frameClicked");
+                frame.setImClicked(false);
+                insertDataForDisplay(frame);
+                if(chartAlt.chart.getData().size() <= 7 && !wasClickedPreviously(frame)) {
+                    currentFrameId = frameListObs.indexOf(frame);
+                    loadDataToCharts(frame);
+                    mapManagement(frame);
+                }
+            }
+        }
+    }
+
     private void chartInteractiveManagement(double mouseXPos) {
         int currentDataSeries = 0;
         for (int i = 0; i < chartAlt.chart.getData().size(); i++) {
@@ -492,30 +520,6 @@ class Layout {
 
     }
 
-    private void colorFramesAndDisplayData(ObservableList<OneDayDataWithFrame> frameListObs) {
-        for (OneDayDataWithFrame frame : frameListObs) {
-            if(frame.isNormalColorStyle()){
-                frame.getFrameStats().getStyleClass().set(0, "frameBlue");
-            } else {
-                frame.getFrameStats().getStyleClass().set(0, "frameYellow");
-            }
-
-            if(wasClickedPreviously(frame) && keepChartsCheckBox.isSelected()) {
-                frame.getFrameStats().getStyleClass().set(0, "frameWasClicked");
-            }
-
-            if(frame.isImClicked()) {
-                frame.getFrameStats().getStyleClass().set(0, "frameClicked");
-                frame.setImClicked(false);
-                currentFrameId = frameListObs.indexOf(frame);
-                insertDataForDisplay(frame);
-                if(chartAlt.chart.getData().size() <= 7 && !wasClickedPreviously(frame)) {
-                    loadDataToCharts(frame);
-                    mapManagement(frame);
-                }
-            }
-        }
-    }
 
     private void mapManagement(OneDayDataWithFrame frame) {
         if(!keepChartsCheckBox.isSelected()) {
@@ -527,8 +531,6 @@ class Layout {
         mapComponent.addMarker(frame.getAllUsedPoints().get(frame.getAltArray().indexOf(frame.getMaxAlt())), String.valueOf((int) frame.getMaxAlt()), "Max altitude", frame.getDate().toString());
         mapComponent.addCircle(frame.getAllUsedPoints().get(0), currentColor, frame.getDate().toString());
     }
-
-
 
     private void loadDataToCharts(OneDayDataWithFrame frame) {
         keepChartsCheckBox.setDisable(false);
@@ -579,9 +581,7 @@ class Layout {
     private void resizeWindowToFixLayout() {
         PauseTransition fixWindow = new PauseTransition(Duration.millis(250));
         fixWindow.setOnFinished((ActionEvent e) -> {
-            primaryStage.setWidth(primaryStage.getWidth()+1);
             primaryStage.setHeight(primaryStage.getHeight()+1);
-            primaryStage.setWidth(primaryStage.getWidth()-1);
             primaryStage.setHeight(primaryStage.getHeight()-1);
             fixWindow.playFromStart();
         });

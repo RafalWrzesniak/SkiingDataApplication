@@ -23,7 +23,7 @@ class MapComponent extends StackPane {
         webEngine.getLoadWorker().stateProperty().addListener((observableValue, state, t1) -> {
             if(state == Worker.State.RUNNING) {
                 webEngine.executeScript("var myMap = L.map('map').setView([50.194579, 20.547605], 9);");
-                webEngine.executeScript("L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution: 'SkiApp by Rafał Wrześniak    .',}).addTo(myMap)");
+                webEngine.executeScript("L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution: 'SkiApp by Rafał Wrześniak',}).addTo(myMap)");
             }
         });
         webEngine.setOnAlert(new EventHandler<WebEvent<String>>() {
