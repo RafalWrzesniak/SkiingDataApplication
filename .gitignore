@@ -3,3 +3,6 @@ src/SkiApp/FakeMain.java
 resources/styles_v2.css
 SkiAppLaunch4J.xml
 SkiingData.iml
+SkiAppLaunch4J2.xml
+SkiAppLaunchBundledJRE.xml
+SkiAppLaunchNeedsJRE9installed.xml

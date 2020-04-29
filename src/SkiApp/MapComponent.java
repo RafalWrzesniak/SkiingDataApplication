@@ -13,14 +13,13 @@ class MapComponent extends StackPane {
     private final WebEngine webEngine = webView.getEngine();
     private int zoomLevel;
 
-
     MapComponent() {
         webEngine.load(getClass().getResource("/leafletmap/map.html").toExternalForm());
         webEngine.setJavaScriptEnabled(true);
         getChildren().add(webView);
         webEngine.getLoadWorker().stateProperty().addListener((observableValue, state, t1) -> {
             if(state == Worker.State.RUNNING) {
-                webEngine.executeScript("var myMap = L.map('map').setView([50.194579, 20.547605], 9);");
+                webEngine.executeScript("var myMap = L.map('map').setView([50.07, 19.9], 9);");
                 webEngine.executeScript("L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution: 'SkiApp by Rafał Wrześniak',}).addTo(myMap)");
             }
         });

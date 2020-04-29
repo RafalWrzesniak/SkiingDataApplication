@@ -63,7 +63,7 @@ class Layout {
     private final VBox dateColumnVBox = new VBox();
     private final VBox viewDataVBox = new VBox();
     private final ScrollPane scrollPane = new ScrollPane();
-    private final MapComponent mapComponent = new MapComponent();
+    private MapComponent mapComponent;
     private final HBox dateBox = new HBox();
     private final GridPane preciseData = new GridPane();
     private HBox centerHbox = new HBox();
@@ -91,6 +91,8 @@ class Layout {
 
 
     void setupAfterWindowShown(){
+        mapComponent = new MapComponent();
+        centerHbox.getChildren().add(mapComponent);
         scrollPane.setMinWidth(217);
         mapComponent.setMaxWidth(primaryStage.getScene().getWidth()-scrollPane.getMinWidth()-500);
         mapComponent.setMinWidth(primaryStage.getScene().getWidth()-scrollPane.getMinWidth()-500);
@@ -363,7 +365,7 @@ class Layout {
         viewDataVBox.setMaxWidth(500);
         viewDataVBox.getChildren().addAll(preciseAndControl, forCharts);
 
-        centerHbox = new HBox(viewDataVBox, mapComponent);
+        centerHbox = new HBox(viewDataVBox);
 
     }
 
