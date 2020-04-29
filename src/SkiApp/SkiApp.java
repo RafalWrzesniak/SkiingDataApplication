@@ -35,7 +35,7 @@ public class SkiApp extends Application {
     @Override
     public void start(Stage primaryStage) {
         Group root = new Group();
-        Scene scene = new Scene(root, 1270, 800, Color.WHITE);
+        Scene scene = new Scene(root, 1270, 750, Color.WHITE);
         scene.getStylesheets().add("");
         scene.getStylesheets().set(0, "/styles.css");
         primaryStage.setMinWidth(570);
@@ -556,9 +556,9 @@ class Layout {
         chartAlt.chart.getData().get(chartAlt.chart.getData().size()-1).setName(frame.getDate().toString());
 
         if(chartAlt.chart.getData().size() > 5) {
-            chartAlt.chart.setMinHeight(385);
+            chartAlt.chart.setMinHeight(MyChart.HEIGHT+24);
         } else {
-            chartAlt.chart.setMinHeight(361);
+            chartAlt.chart.setMinHeight(MyChart.HEIGHT);
         }
     }
 

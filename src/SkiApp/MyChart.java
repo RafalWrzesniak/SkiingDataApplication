@@ -22,6 +22,7 @@ class MyChart extends AreaChart{
     private static double maxYValue = 0;
     static final String DISTANCE = "Distance";
     static final String TIME = "Time";
+    static final int HEIGHT = 331;
     private final NumberAxis xAxis;
     private final NumberAxis yAxis;
     AreaChart<Number, Number> chart;
@@ -50,8 +51,8 @@ class MyChart extends AreaChart{
         chart.createSymbolsProperty().setValue(true);
         chart.setCreateSymbols(false);
         chart.setTitle("Chart of altitude versus distance");
-        chart.setMaxHeight(361);
-        chart.setMinHeight(361);
+        chart.setMaxHeight(HEIGHT);
+        chart.setMinHeight(HEIGHT);
 
         XYChart.Series<Number, Number> tempChartData = new XYChart.Series<>();
         tempChartData.getData().add(new XYChart.Data<>(0,0));

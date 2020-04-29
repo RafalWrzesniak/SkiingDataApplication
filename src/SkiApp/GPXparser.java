@@ -14,8 +14,8 @@ import java.io.IOException;
 
 public class GPXparser {
 
-    private File inputFile;
-    private Document doc;
+    private final File inputFile;
+    private final Document doc;
     private NodeList trkptList;
     private NodeList altList;
     private NodeList timeList;

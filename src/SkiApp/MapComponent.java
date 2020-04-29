@@ -2,10 +2,8 @@ package SkiApp;
 
 import javafx.collections.ObservableList;
 import javafx.concurrent.Worker;
-import javafx.event.EventHandler;
 import javafx.scene.layout.StackPane;
 import javafx.scene.web.WebEngine;
-import javafx.scene.web.WebEvent;
 import javafx.scene.web.WebView;
 
 
@@ -17,7 +15,7 @@ class MapComponent extends StackPane {
 
 
     MapComponent() {
-        webEngine.load("file:///E:/Java_projects/SkiingData/resources/leafletmap/map.html");
+        webEngine.load(getClass().getResource("/leafletmap/map.html").toExternalForm());
         webEngine.setJavaScriptEnabled(true);
         getChildren().add(webView);
         webEngine.getLoadWorker().stateProperty().addListener((observableValue, state, t1) -> {
@@ -26,12 +24,7 @@ class MapComponent extends StackPane {
                 webEngine.executeScript("L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution: 'SkiApp by Rafał Wrześniak',}).addTo(myMap)");
             }
         });
-        webEngine.setOnAlert(new EventHandler<WebEvent<String>>() {
-            @Override
-            public void handle(WebEvent<String> stringWebEvent) {
-                zoomLevel = Integer.parseInt(stringWebEvent.getData());
-            }
-        });
+        webEngine.setOnAlert(stringWebEvent -> zoomLevel = Integer.parseInt(stringWebEvent.getData()));
 
     }
 
