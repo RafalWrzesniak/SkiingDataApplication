@@ -19,7 +19,7 @@ class MapComponent extends StackPane {
         getChildren().add(webView);
         webEngine.getLoadWorker().stateProperty().addListener((observableValue, state, t1) -> {
             if(state == Worker.State.RUNNING) {
-                webEngine.executeScript("var myMap = L.map('map').setView([50.07, 19.9], 9);");
+                webEngine.executeScript("var myMap = L.map('map').setView([50.07, 19.9], 10);");
                 webEngine.executeScript("L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution: 'SkiApp by Rafał Wrześniak',}).addTo(myMap)");
             }
         });
