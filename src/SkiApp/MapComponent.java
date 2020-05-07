@@ -5,9 +5,13 @@ import javafx.concurrent.Worker;
 import javafx.scene.layout.StackPane;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 class MapComponent extends StackPane {
+
+    private static final Logger logger = LoggerFactory.getLogger(MapComponent.class.getName());
 
     private final WebView webView = new WebView();
     private final WebEngine webEngine = webView.getEngine();
@@ -21,23 +25,26 @@ class MapComponent extends StackPane {
             if(state == Worker.State.RUNNING) {
                 webEngine.executeScript("var myMap = L.map('map').setView([50.07, 19.9], 10);");
                 webEngine.executeScript("L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution: 'SkiApp by Rafał Wrześniak',}).addTo(myMap)");
+                logger.info("Map was loaded");
             }
         });
         webEngine.setOnAlert(stringWebEvent -> zoomLevel = Integer.parseInt(stringWebEvent.getData()));
 
     }
 
-    void addMarker(TrackPoint trackPoint, String name, String name2, String name3) {
-        webEngine.executeScript("var "+ name2.replace(' ', '_') + " = L.marker([" +  trackPoint.getLat() + ", " +  trackPoint.getLon() + "]).addTo(myMap);");
-        if(name2.contains("Max altitude")) name = "" + name + " [m]";
-        webEngine.executeScript(name2.replace(' ', '_') + ".bindPopup('<b><center>" + name + "</center></b>" + name3 + "<br>" + name2 + "')");
+    void addMarker(TrackPoint trackPoint, String altitude, String markerName, String date) {
+        webEngine.executeScript("var "+ markerName.replace(' ', '_') + " = L.marker([" +  trackPoint.getLat() + ", " +  trackPoint.getLon() + "]).addTo(myMap);");
+        if(markerName.contains("Max altitude")) altitude = "" + altitude + " [m]";
+        webEngine.executeScript(markerName.replace(' ', '_') + ".bindPopup('<b><center>" + altitude + "</center></b>" + date + "<br>" + markerName + "')");
+        logger.debug("Marker with date of {} and altitude of {} added to the map", date, altitude);
     }
 
     void addCircle(TrackPoint trackPoint, String color, String name) {
         name = "circle_" + name;
         name = name.replace('-', '_');
-        webEngine.executeScript("var " + name + " = L.circle([" + trackPoint.getLat() + ", " +  trackPoint.getLon() + "], " +
-                "{color: '" + color + "', fillColor: 'white', fillOpacity: 0.8, radius: 120}).addTo(myMap);");
+        webEngine.executeScript("var " + name + " = L.circle([" + trackPoint.getLat() + ", " +  trackPoint.getLon()
+                + "], {color: '" + color + "', fillColor: 'white', fillOpacity: 0.8, radius: 120}).addTo(myMap);");
+        logger.debug("Circle {} with color of {} added to the map", name, color);
     }
 
     void moveCircle(TrackPoint trackPoint, String name) {
@@ -49,6 +56,7 @@ class MapComponent extends StackPane {
 
     void removeObject(String objectName) {
         webEngine.executeScript("myMap.removeLayer(" + objectName + ");");
+        logger.debug("{} removed from the map", objectName);
     }
 
     void setView(double lat, double lon, int zoomLevel) throws IllegalArgumentException {
@@ -73,6 +81,7 @@ class MapComponent extends StackPane {
         webEngine.executeScript("var " + name + " = L.polyline([" + polylineList + "], " +
                 "{color: '" + color + "', weight: 3}).addTo(myMap); ");
         webEngine.executeScript("myMap.fitBounds(" + name + ".getBounds());");
+        logger.debug("Track {} added to the map", name);
 
     }
 
@@ -83,6 +92,7 @@ class MapComponent extends StackPane {
                    "       myMap.removeLayer(myMap._layers[i]);" +
                    "   }" +
                    "}");
+        logger.debug("Everything was removed from the map");
     }
 
     int getZoom() {

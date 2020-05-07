@@ -46,5 +46,6 @@
       </library>
     </orderEntry>
     <orderEntry type="library" name="JavaFX" level="project" />
+    <orderEntry type="library" name="Logback" level="project" />
   </component>
 </module>

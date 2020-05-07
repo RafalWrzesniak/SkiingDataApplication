@@ -2,11 +2,16 @@ package SkiApp;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
 public class SingleDayStats {
+
+    private static final Logger logger = LoggerFactory.getLogger(SingleDayStats.class.getName());
 
     private ObservableList<Double> shortDistanceArray = FXCollections.observableArrayList();
     private ObservableList<Double> shortAltByDistArray = FXCollections.observableArrayList();
@@ -160,6 +165,7 @@ public class SingleDayStats {
         this.distUp = distUp/1000;
         this.totalDistance = shortDistanceArray.get(shortDistanceArray.size()-1);
         this.allUsedPoints = shortTrackedPoints;
+        logger.info("All data gathered for day {} with {} points", getDate(), allUsedPoints.size());
     }
 
     private String changeSumTimeToString(Double value) {
@@ -216,6 +222,7 @@ public class SingleDayStats {
                 singleDayPointsList.add(singleDayPoints);
             }
         }
+        logger.info("All parsed points successfully divided into {} days", singleDayPointsList.size());
         return singleDayPointsList;
     }
 

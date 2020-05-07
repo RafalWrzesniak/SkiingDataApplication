@@ -10,11 +10,16 @@ import javafx.scene.chart.XYChart;
 import javafx.scene.control.Label;
 import javafx.scene.paint.Color;
 import javafx.util.Duration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.ArrayList;
 import java.util.List;
 
 
 class MyChart extends AreaChart{
+
+    private static final Logger logger = LoggerFactory.getLogger(MyChart.class.getName());
 
     private final List<Color> colors = List.of(Color.DARKVIOLET, Color.LIGHTSALMON, Color.RED, Color.MAGENTA, Color.AQUAMARINE, Color.BLACK, Color.GREEN);
     private final List<Color> colorsTemp = new ArrayList<>();
@@ -32,6 +37,7 @@ class MyChart extends AreaChart{
         this.xAxis = xAxis;
         this.yAxis = yAxis;
         commonSetups();
+        logger.debug("Chart object was created");
     }
 
     private void commonSetups() {
@@ -125,12 +131,14 @@ class MyChart extends AreaChart{
             animateChart(axisData, yMin, color);
             colorsTemp.clear();
             colorsTemp.addAll(colors);
+            logger.debug("Axis Data with max x - {} and max y - {} animated and added to the chart", xData.get(xData.size()-1).intValue(), (int) calcMaxY(yData));
         } else {
             chart.getData().add(axisData);
             if(colorsTemp.size() > 0) {
                 changeColorsOfChart(colorsTemp.get(0));
                 colorsTemp.remove(0);
             }
+            logger.debug("Axis Data with max x - {} and max y - {} added to the chart", xData.get(xData.size()-1).intValue(), (int) calcMaxY(yData));
         }
 
     }
@@ -149,7 +157,7 @@ class MyChart extends AreaChart{
         for (Double yDatum : yData) {
             if (yDatum < yMin) yMin = yDatum;
         }
-        return yMin;
+        return yMin == 10000 ? yData.get(0) : yMin;
     }
 
 
@@ -165,6 +173,7 @@ class MyChart extends AreaChart{
 
     void setXaxisLabel(String name) {
         this.xAxis.setLabel(String.join(" ", name, name.equals(MyChart.DISTANCE) ? "[km]" : "[h]"));
+        logger.debug("X axis name changed to {}", name);
     }
 
     private void setYaxisLabel() {

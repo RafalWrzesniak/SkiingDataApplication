@@ -7,10 +7,13 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 class OneDayDataWithFrame extends SingleDayStats{
 
+    private static final Logger logger = LoggerFactory.getLogger(OneDayDataWithFrame.class.getName());
     private boolean imClicked = false;
     private final boolean normalColorStyle;
     private final VBox wholeFrameStats;
@@ -90,6 +93,7 @@ class OneDayDataWithFrame extends SingleDayStats{
         wholeFrameStats.setOnMouseClicked(mouseEvent -> setImClicked(true));
 
         wholeFrameStats.setMaxWidth(206);
+        logger.debug("WholeFrameDataBox created for {}", getDate());
         return wholeFrameStats;
     }
 
@@ -100,6 +104,7 @@ class OneDayDataWithFrame extends SingleDayStats{
 
     void setImClicked(boolean imClicked) {
         this.imClicked = imClicked;
+        logger.info("Frame date {} is clicked now", getDate());
     }
 
     boolean isNormalColorStyle() {

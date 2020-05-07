@@ -22,6 +22,8 @@ import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 import javafx.util.Duration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -58,6 +60,8 @@ public class SkiApp extends Application {
 
 class Layout {
 
+    private static final Logger logger = LoggerFactory.getLogger(Layout.class.getName());
+
     BorderPane mainBorderPane = new BorderPane();
     private final HBox fileChooserHBox = new HBox();
     private final VBox dateColumnVBox = new VBox();
@@ -82,6 +86,7 @@ class Layout {
     private final Stage primaryStage;
 
     Layout(Stage primaryStage) {
+        logger.info("Application has started");
         this.primaryStage = primaryStage;
         fileChooser();
         center();
@@ -90,7 +95,7 @@ class Layout {
     }
 
 
-    void setupAfterWindowShown(){
+    void setupAfterWindowShown() {
         mapComponent = new MapComponent();
         centerHbox.getChildren().add(mapComponent);
         scrollPane.setMinWidth(217);
@@ -145,10 +150,11 @@ class Layout {
         });
 
         resizeWindowToFixLayout();
+        logger.info("Window is displayed and ready");
     }
 
 
-    private void borderPane(){
+    private void borderPane() {
         mainBorderPane.setTop(fileChooserHBox);
         mainBorderPane.setLeft(scrollPane);
         mainBorderPane.setCenter(centerHbox);
@@ -275,10 +281,12 @@ class Layout {
         colorPicker.setMinHeight(Region.USE_PREF_SIZE);
         colorPicker.setValue(Color.ROYALBLUE);
         colorPicker.setOnAction(actionEvent -> {
+            logger.info("Color picker was triggered");
             Circle tempCircle = (Circle) chartStackPane.getChildren().get(1);
             tempCircle.setFill(colorPicker.getValue());
             chartAlt.changeColorsOfChart(colorPicker.getValue());
-            mapManagement(oneDayDataList.get(currentFrameId));
+            if(currentFrameId >= 0) mapManagement(oneDayDataList.get(currentFrameId));
+            logger.debug("Chart and map color changed to {}", colorPicker.getValue());
             });
 
         // charts type
@@ -289,25 +297,30 @@ class Layout {
         chartsType.setPrefWidth(105);
         chartsType.setValue(MyChart.DISTANCE);
         chartsType.setOnAction(actionEvent -> {
+            logger.info("Charts type button was triggered");
             chartAlt.setXaxisLabel(chartsType.getValue());
             chartAlt.chart.setTitle("Chart of altitude versus " + chartsType.getValue().toLowerCase());
             detailedPoint.setText(String.format(chartsType.getValue() +  ": %.1f, Altitude: %.0f, (Lat, Lon): (%.2f, %.2f)", 0.0, 0.0, 0.0, 0.0));
             try {
                 loadDataToCharts(oneDayDataList.get(currentFrameId));
+                logger.debug("Chart is now alt by {} and is loaded", chartsType.getValue());
             } catch (IndexOutOfBoundsException e) {
                 e.getMessage();
+                logger.warn("Chart is now alt by {} and data wasn't loaded because {}", chartsType.getValue(), e.getMessage());
             }
         });
         // keep charts checkbox
         keepChartsCheckBox = new CheckBox("Keep charts");
         keepChartsCheckBox.setDisable(true);
         keepChartsCheckBox.selectedProperty().addListener((observableValue, aBoolean, t1) -> {
+            logger.debug("KeepCharts check box is now {}", keepChartsCheckBox.isSelected());
             if(!keepChartsCheckBox.isSelected()) {
                 chartAlt.chart.getData().clear();
                 oneDayDataList.get(currentFrameId).setImClicked(true);
                 colorFramesAndDisplayData(oneDayDataList);
                 chartsType.setDisable(false);
                 colorPicker.setDisable(false);
+                logger.info("Chart and map are cleared from all other days then selected");
             } else {
                 chartsType.setDisable(true);
                 colorPicker.setDisable(true);
@@ -370,17 +383,20 @@ class Layout {
     }
 
 
-    // Controlers methods
+    // Controllers methods
     private void fileWasChosen(Stage primaryStage, Label chosenFileLabel) {
         ObservableList<File> chosenFiles = chooseFileDialog(primaryStage);
         if(chosenFiles.size() == 0) return;
 
         for(File xmlFIle: chosenFiles) {
+            logger.debug("Processing file >{}< of >{}<", chosenFiles.indexOf(xmlFIle)+1, chosenFiles.size());
             GPXparser gpXparser;
             try {
                 gpXparser = new GPXparser(xmlFIle);
+                logger.info("File >{}< was parsed successfully", xmlFIle);
             } catch (IllegalArgumentException | IOException | ParserConfigurationException | SAXException e) {
 //            e.printStackTrace();
+                logger.warn("File >{}< was NOT parsed with error: {}", xmlFIle, e.getMessage());
                 return;
             }
 
@@ -401,11 +417,11 @@ class Layout {
                 }
             } catch (Exception e) {
 //                e.printStackTrace();
-                System.out.println("Mismatch in .input file - different amount of gps coordinates, altitudes and time");
+                logger.warn("Mismatch in input file >{}< - different amount of gps coordinates, altitudes and time", xmlFIle);
                 chosenFileLabel.setText("Incorrect input file!");
                 return;
             }
-
+            logger.debug("XML file >{}< decoded properly", xmlFIle);
             chosenFileLabel.setText(chosenFiles.toString());
         }
 
@@ -418,18 +434,19 @@ class Layout {
             oneDayDataList.get(0).setImClicked(true);
             colorFramesAndDisplayData(oneDayDataList);
         }
+        logger.info("All files were loaded");
     }
 
     private ObservableList<File> chooseFileDialog(Stage primaryStage) {
+        logger.debug("Choose file dialog is now open");
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Open your GPX file");
         fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("GPX Files", "*.gpx"));
         List<File> fileList;
         fileList =  fileChooser.showOpenMultipleDialog(primaryStage);
         ObservableList<File> listToReturn = FXCollections.observableArrayList();
-        try {
-            listToReturn.addAll(fileList);
-        } catch (NullPointerException ignored) {}
+        if(fileList != null) listToReturn.addAll(fileList);
+        logger.info("{} files were chosen", listToReturn.size());
         return listToReturn;
     }
 
@@ -439,6 +456,7 @@ class Layout {
             dateColumnVBox.getChildren().add(frame.getFrameStats());
         }
         scrollPane.setContent(dateColumnVBox);
+        logger.debug("{} days were inserted into ScrollPane", oneDayDataList.size());
     }
 
 
@@ -462,7 +480,8 @@ class Layout {
                     currentFrameId = frameListObs.indexOf(frame);
                     loadDataToCharts(frame);
                     mapManagement(frame);
-                }
+                    logger.debug("Clicked frame with date of {} was loaded and displayed", frame.getDate());
+                } else {logger.debug("Clicked frame with date of {} was loaded, but not displayed - too many frames clicked", frame.getDate());}
             }
         }
     }
@@ -519,7 +538,7 @@ class Layout {
 
         Label labelToChange = (Label) dateBox.getChildren().get(1);
         labelToChange.setText(frame.getDate().toString());
-
+        logger.debug("Detailed day {} data is displayed", frame.getDate());
     }
 
 
@@ -532,6 +551,7 @@ class Layout {
         mapComponent.createTrack(frame.getAllUsedPoints(), currentColor);
         mapComponent.addMarker(frame.getAllUsedPoints().get(frame.getAltArray().indexOf(frame.getMaxAlt())), String.valueOf((int) frame.getMaxAlt()), "Max altitude", frame.getDate().toString());
         mapComponent.addCircle(frame.getAllUsedPoints().get(0), currentColor, frame.getDate().toString());
+        logger.debug("Frame with date of {} was loaded to the map", frame.getDate());
     }
 
     private void loadDataToCharts(OneDayDataWithFrame frame) {
@@ -562,6 +582,7 @@ class Layout {
         } else {
             chartAlt.chart.setMinHeight(MyChart.HEIGHT);
         }
+        logger.debug("Data of {} loaded to chart", frame.getDate());
     }
 
 
