@@ -43,14 +43,23 @@ class MapComponent extends StackPane {
         name = "circle_" + name;
         name = name.replace('-', '_');
         webEngine.executeScript("var " + name + " = L.circle([" + trackPoint.getLat() + ", " +  trackPoint.getLon()
-                + "], {color: '" + color + "', fillColor: 'white', fillOpacity: 0.8, radius: 120}).addTo(myMap);");
+                + "], {color: '" + color + "', fillColor: 'white', fillOpacity: 0.8, radius: 130}).addTo(myMap);");
         logger.debug("Circle {} with color of {} added to the map", name, color);
+        System.out.println(getZoom());
     }
 
     void moveCircle(TrackPoint trackPoint, String name) {
         name = "circle_" + name;
         name = name.replace('-', '_');
         webEngine.executeScript(name + ".setLatLng([" + trackPoint.getLat() + ", " + trackPoint.getLon() + "])");
+    }
+
+
+    void adaptCircleRadiusToCurrentZoom(String name) {
+        int radius = (int) (-23.4*getZoom()+424.2);
+        name = "circle_" + name;
+        name = name.replace('-', '_');
+        webEngine.executeScript(name + ".setRadius([" + radius + "])");
     }
 
 

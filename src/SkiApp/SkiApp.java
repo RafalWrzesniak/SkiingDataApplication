@@ -354,7 +354,7 @@ class Layout {
         chartAlt = new MyChart(new NumberAxis(), new NumberAxis());
         chartAlt.chart.setOnMouseMoved(mouseEvent -> chartInteractiveManagement(mouseEvent.getX()));
         chartAlt.chart.setOnMouseEntered(mouseEvent -> {
-                if(chartAlt.chart.getData().get(0).getData().size() > 10) {
+                if(chartAlt.chart.getData().get(0).getData().size() > 1) {
                     chartInteractiveManagement(73);
                     chartStackPane.getChildren().get(1).setVisible(true);
         }});
@@ -521,6 +521,7 @@ class Layout {
                     oneDayDataList.get(currentFrameId).getAllUsedPoints().get(hoveredPointIndex).getLon()));
 
             mapComponent.moveCircle(oneDayDataList.get(currentFrameId).getAllUsedPoints().get(hoveredPointIndex), oneDayDataList.get(currentFrameId).getDate().toString());
+            mapComponent.adaptCircleRadiusToCurrentZoom(oneDayDataList.get(currentFrameId).getDate().toString());
         } catch(IndexOutOfBoundsException ignored) {}
     }
 
@@ -551,6 +552,7 @@ class Layout {
         mapComponent.createTrack(frame.getAllUsedPoints(), currentColor);
         mapComponent.addMarker(frame.getAllUsedPoints().get(frame.getAltArray().indexOf(frame.getMaxAlt())), String.valueOf((int) frame.getMaxAlt()), "Max altitude", frame.getDate().toString());
         mapComponent.addCircle(frame.getAllUsedPoints().get(0), currentColor, frame.getDate().toString());
+        mapComponent.adaptCircleRadiusToCurrentZoom(frame.getDate().toString());
         logger.debug("Frame with date of {} was loaded to the map", frame.getDate());
     }
 
