@@ -45,7 +45,6 @@ class MapComponent extends StackPane {
         webEngine.executeScript("var " + name + " = L.circle([" + trackPoint.getLat() + ", " +  trackPoint.getLon()
                 + "], {color: '" + color + "', fillColor: 'white', fillOpacity: 0.8, radius: 130}).addTo(myMap);");
         logger.debug("Circle {} with color of {} added to the map", name, color);
-        System.out.println(getZoom());
     }
 
     void moveCircle(TrackPoint trackPoint, String name) {

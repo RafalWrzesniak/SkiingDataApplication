@@ -354,7 +354,7 @@ class Layout {
         chartAlt = new MyChart(new NumberAxis(), new NumberAxis());
         chartAlt.chart.setOnMouseMoved(mouseEvent -> chartInteractiveManagement(mouseEvent.getX()));
         chartAlt.chart.setOnMouseEntered(mouseEvent -> {
-                if(chartAlt.chart.getData().get(0).getData().size() > 1) {
+                if(!chartAlt.chart.getData().isEmpty() && chartAlt.chart.getData().get(0).getData().size() > 1) {
                     chartInteractiveManagement(73);
                     chartStackPane.getChildren().get(1).setVisible(true);
         }});
@@ -403,9 +403,11 @@ class Layout {
             try {
                 ObservableList<TrackPoint> allTrackedPoints = gpXparser.parseXMLtoTrackPointList();
                 ObservableList<ObservableList<TrackPoint>> dayList = SingleDayStats.divideAllPointsToDays(allTrackedPoints);
+                if(dayList.isEmpty()) throw new IllegalArgumentException("Not enough points to create any day");
                 if(chosenFiles.indexOf(xmlFIle) == 0) {
                     dateColumnVBox.getChildren().clear();
                     oneDayDataList.clear();
+                    chartAlt.chart.getData().clear();
                     currentFrameId = -1;
                 }
                 for (int i = 0; i < dayList.size(); i++) {
@@ -417,8 +419,9 @@ class Layout {
                 }
             } catch (Exception e) {
 //                e.printStackTrace();
-                logger.warn("Mismatch in input file >{}< - different amount of gps coordinates, altitudes and time", xmlFIle);
+                logger.warn("Mismatch in input file >{}< : {}", xmlFIle, e.getMessage());
                 chosenFileLabel.setText("Incorrect input file!");
+                chosenFileLabel.setStyle("-fx-border-color: crimson; -fx-background-color: white; -fx-border-width: 3");
                 return;
             }
             logger.debug("XML file >{}< decoded properly", xmlFIle);
@@ -476,21 +479,23 @@ class Layout {
                 frame.getFrameStats().getStyleClass().set(0, "frameClicked");
                 frame.setImClicked(false);
                 insertDataForDisplay(frame);
+                currentFrameId = frameListObs.indexOf(frame);
                 if(chartAlt.chart.getData().size() <= 7 && !wasClickedPreviously(frame)) {
-                    currentFrameId = frameListObs.indexOf(frame);
                     loadDataToCharts(frame);
                     mapManagement(frame);
                     logger.debug("Clicked frame with date of {} was loaded and displayed", frame.getDate());
-                } else {logger.debug("Clicked frame with date of {} was loaded, but not displayed - too many frames clicked", frame.getDate());}
+                } else {logger.debug("Clicked frame with date of {} was loaded, but not displayed", frame.getDate());}
             }
         }
     }
 
     private void chartInteractiveManagement(double mouseXPos) {
         int currentDataSeries = 0;
+        System.out.println(currentFrameId);
         for (int i = 0; i < chartAlt.chart.getData().size(); i++) {
             if(currentFrameId != -1 && chartAlt.chart.getData().get(i).getName().equals(oneDayDataList.get(currentFrameId).getDate().toString())) {
                 currentDataSeries = i;
+                System.out.println(oneDayDataList.get(currentDataSeries).getDate());
             }
         }
         double hoveredX = chartAlt.getChartXFromMousePos(mouseXPos, currentDataSeries);

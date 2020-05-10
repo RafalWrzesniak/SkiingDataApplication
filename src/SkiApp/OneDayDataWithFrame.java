@@ -104,7 +104,7 @@ class OneDayDataWithFrame extends SingleDayStats{
 
     void setImClicked(boolean imClicked) {
         this.imClicked = imClicked;
-        logger.info("Frame date {} is clicked now", getDate());
+        logger.info("Frame date {} isClicked is now: {}", getDate(), imClicked);
     }
 
     boolean isNormalColorStyle() {

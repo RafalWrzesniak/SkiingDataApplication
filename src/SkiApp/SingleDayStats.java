@@ -206,12 +206,12 @@ public class SingleDayStats {
                 if(point.getDate().compareTo(allPoints.get(allPoints.indexOf(point)-1).getDate()) != 0) {
                     ObservableList<TrackPoint> dayCopy = FXCollections.observableArrayList();
                     dayCopy.addAll(singleDayPoints);
-                    singleDayPointsList.add(dayCopy);
+                    if(dayCopy.size() > 1) singleDayPointsList.add(dayCopy);
                     singleDayPoints.removeAll(dayCopy);
                 }
             }
             singleDayPoints.add(point);
-            if (allPoints.indexOf(point) == allPoints.size()-1) {
+            if (allPoints.indexOf(point) == allPoints.size()-1 && singleDayPoints.size() > 1) {
                 singleDayPointsList.add(singleDayPoints);
             }
         }
