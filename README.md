@@ -1,6 +1,9 @@
 # Skiing Data application
 #### This application is to process and then display data, chart and map of every skiers day. Input data for the application is a .gpx file. This file can be exported from nearly every ski-track mobile application. 
 
+Video demo: 
+https://youtu.be/dofgynbM7Aw
+
 ## Real life use case:
 ##### - before skiing install some mobile ski-tracker application on your phone (e.g. Ski Tracker for android)
 ##### - run mobile application every day on skis
